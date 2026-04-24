@@ -1,0 +1,1054 @@
+:root {
+  --primary-color: #8B0000;
+  --secondary-color: #2c3e50;
+  --bg-color: #1a252f;
+  --card-bg: #2c3e50;
+  --text-color: #e0e0e0;
+  --border-color: #34495e;
+  --shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+  --border-radius: 8px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'SimSun', 'STSong', '宋体', 'KaiTi', '楷体', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  line-height: 1.6;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.header {
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  color: white;
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: var(--shadow);
+  margin-bottom: 30px;
+}
+
+.header-left {
+  text-align: left;
+}
+
+.header-right {
+  text-align: left;
+}
+
+.real-time-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 15px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  min-width: 200px;
+}
+
+.real-time-info .solar-date {
+  font-size: 1rem;
+  font-family: 'Courier New', monospace, 'SimSun', 'STSong', '宋体', serif;
+  font-weight: normal;
+  letter-spacing: 0.5px;
+}
+
+.real-time-info .lunar-info {
+  font-size: 1rem;
+  font-family: 'Courier New', monospace, 'SimSun', 'STSong', '宋体', serif;
+  font-weight: normal;
+  letter-spacing: 0.5px;
+}
+
+.real-time-info .term-time-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 3px;
+}
+
+.real-time-info .solar-term {
+  font-size: 1rem;
+  font-family: 'SimSun', 'STSong', '宋体', serif;
+  color: #f39c12;
+  font-weight: normal;
+}
+
+.real-time-info .time-separator {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.real-time-info .time {
+  font-size: 1rem;
+  font-weight: normal;
+  font-family: 'SimSun', 'STSong', '宋体', serif;
+  min-width: 80px;
+  text-align: left;
+}
+
+.header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+  font-weight: bold;
+  font-family: 'SimSun', 'STSong', '宋体', serif;
+}
+
+.header p {
+  font-size: 1.2rem;
+  opacity: 0.9;
+}
+
+.card {
+  background-color: var(--card-bg);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  padding: 30px;
+  margin-bottom: 30px;
+}
+
+.bazi-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  margin-top: 20px;
+}
+
+.bazi-form {
+  background-color: rgba(255, 255, 255, 0.03);
+  padding: 25px;
+  border-radius: var(--border-radius);
+  border-left: 4px solid var(--primary-color);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.bazi-result {
+  background-color: rgba(255, 255, 255, 0.03);
+  padding: 25px;
+  border-radius: var(--border-radius);
+  border-right: 4px solid var(--primary-color);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  animation: fadeIn 0.6s ease-out;
+  overflow-y: auto;
+  max-height: 800px;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (max-width: 992px) {
+  .bazi-container {
+    grid-template-columns: 1fr;
+  }
+  
+  .bazi-form {
+    border-left: none;
+    border-top: 4px solid var(--primary-color);
+  }
+  
+  .bazi-result {
+    border-right: none;
+    border-bottom: 4px solid var(--primary-color);
+  }
+}
+
+/* 优化表单样式 */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: bold;
+  color: #e0e0e0;
+  font-size: 0.95rem;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 10px 12px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  color: white;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(139, 0, 0, 0.2);
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+/* 优化复选框样式 */
+.form-group.checkbox-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.form-group.checkbox-group input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--primary-color);
+}
+
+.form-group.checkbox-group label {
+  margin: 0;
+  font-weight: normal;
+  cursor: pointer;
+}
+
+/* 优化下拉菜单样式 */
+.form-group select {
+  height: 44px;
+  max-height: none;
+  padding: 8px 12px;
+  font-size: 0.9rem;
+}
+
+.form-group select option {
+  background-color: #2c3e50;
+  color: #e0e0e0;
+}
+
+.form-group select option:hover {
+  background-color: #8B0000;
+  color: white;
+}
+
+/* 三级联动选择器样式 */
+.form-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.form-row .form-group {
+  flex: 1;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .form-row {
+    flex-direction: column;
+  }
+  
+  .form-row .form-group {
+    width: 100%;
+  }
+}
+
+.form-group select option:checked {
+  background-color: #8B0000;
+  color: white;
+  font-weight: bold;
+}
+
+.form-group.half {
+  flex: 1;
+}
+
+.btn {
+  display: inline-block;
+  padding: 12px 24px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 10px;
+  width: 100%;
+  text-align: center;
+}
+
+.btn:hover {
+  background-color: #a00000;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(139, 0, 0, 0.3);
+}
+
+.btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(139, 0, 0, 0.3);
+}
+
+/* 优化结果显示样式 */
+.bazi-chart {
+  margin-bottom: 20px;
+  padding: 10px 0;
+  overflow-x: auto;
+}
+
+.bazi-row {
+  display: flex;
+  margin-bottom: 1px;
+  align-items: center;
+  height: 16px;
+  line-height: 16px;
+}
+
+.bazi-row.header {
+  font-weight: bold;
+  color: white;
+  margin-bottom: 2px;
+  font-size: 0.85rem;
+  height: 14px;
+  line-height: 14px;
+}
+
+.bazi-cell {
+  flex: 1;
+  text-align: center;
+  padding: 0 2px;
+  transition: all 0.3s ease;
+}
+
+.bazi-cell:hover {
+  background-color: rgba(255, 255, 255, 0.03);
+  border-radius: 4px;
+}
+
+.bazi-cell.label {
+  font-weight: bold;
+  color: #f39c12;
+  min-width: 60px;
+  text-align: left;
+  font-size: 0.85rem;
+}
+
+.bazi-cell.gan {
+  color: #3498db;
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.bazi-cell.zhi {
+  color: #2ecc71;
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.analysis {
+  margin-bottom: 20px;
+  line-height: 1.8;
+  font-size: 0.95rem;
+  white-space: pre-wrap;
+}
+
+.analysis p {
+  margin: 0;
+}
+
+/* 优化大运流年样式 */
+.大运流年分析 {
+  gap: 20px;
+}
+
+.大运分析,
+.流年分析 {
+  padding: 6px;
+  border-left: 3px solid #f39c12;
+  margin-bottom: 6px;
+}
+
+.大运分析 h4,
+.流年分析 h4 {
+  margin-top: 0;
+  margin-bottom: 12px;
+  color: #f39c12;
+  font-size: 1rem;
+  font-family: 'SimSun', 'STSong', '宋体', serif;
+  font-weight: bold;
+}
+
+.大运列表,
+.流年列表 {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5px;
+}
+
+.大运项,
+.流年项 {
+  padding: 4px;
+  border-left: 2px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.大运年份,
+.流年年份 {
+  font-weight: bold;
+  color: #f39c12;
+  display: inline-block;
+  width: 60px;
+  flex-shrink: 0;
+  font-size: 0.85rem;
+}
+
+.大运干支,
+.流年干支 {
+  font-weight: bold;
+  color: #e74c3c;
+  display: inline-block;
+  width: 40px;
+  flex-shrink: 0;
+  font-size: 0.85rem;
+}
+
+.大运解读,
+.流年解读 {
+  color: #e0e0e0;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  display: block;
+  flex-grow: 1;
+  margin-top: 0;
+}
+
+.大运项:hover,
+.流年项:hover {
+  background-color: rgba(255, 255, 255, 0.02);
+  border-left-color: var(--primary-color);
+  transform: translateX(3px);
+}
+
+.大运年份,
+.流年年份 {
+  font-weight: bold;
+  color: #f39c12;
+  display: inline-block;
+  margin-right: 1.25px;
+  font-size: 0.85rem;
+}
+
+.大运干支,
+.流年干支 {
+  font-weight: bold;
+  color: #e74c3c;
+  display: inline-block;
+  margin-right: 1.25px;
+  font-size: 0.85rem;
+}
+
+.大运解读,
+.流年解读 {
+  color: #e0e0e0;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  display: block;
+  margin-top: 0.75px;
+}
+
+.card h2 {
+  color: white;
+  margin-bottom: 20px;
+  font-size: 1.8rem;
+  border-bottom: none;
+  padding-bottom: 10px;
+  font-family: 'SimSun', 'STSong', '宋体', serif;
+  font-weight: bold;
+}
+
+.card h3 {
+  color: #e0e0e0;
+  margin: 20px 0 15px 0;
+  font-size: 1.3rem;
+  font-family: 'SimSun', 'STSong', '宋体', serif;
+  font-weight: bold;
+}
+
+.card h4 {
+  color: #e0e0e0;
+  margin: 15px 0 10px 0;
+  font-size: 1.1rem;
+  font-family: 'SimSun', 'STSong', '宋体', serif;
+  font-weight: bold;
+}
+
+.form-sections {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+
+.form-section {
+  flex: 1;
+  min-width: 300px;
+  padding: 20px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+}
+
+.form-section h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: white;
+  font-size: 1.2rem;
+  font-family: 'SimSun', 'STSong', '宋体', serif;
+  font-weight: bold;
+}
+
+.compatibility-charts {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+
+.compatibility-chart {
+  flex: 1;
+  min-width: 300px;
+  padding: 20px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+}
+
+.compatibility-chart h4 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: white;
+  font-size: 1.1rem;
+  font-family: 'SimSun', 'STSong', '宋体', serif;
+  font-weight: bold;
+}
+
+.compatibility-analysis {
+  padding: 20px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  margin-top: 20px;
+}
+
+.compatibility-score {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 1.1rem;
+  font-family: 'SimSun', 'STSong', '宋体', serif;
+}
+
+.score-label {
+  color: #e0e0e0;
+}
+
+.score-value {
+  color: #f39c12;
+  font-weight: bold;
+  margin: 0 5px;
+}
+
+.score-max {
+  color: #95a5a6;
+}
+
+.大运流年分析 {
+  margin-top: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.大运分析,
+.流年分析 {
+  padding: 20px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+}
+
+.大运分析 h4,
+.流年分析 h4 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: white;
+  font-size: 1.1rem;
+  font-family: 'SimSun', 'STSong', '宋体', serif;
+  font-weight: bold;
+}
+
+.大运列表,
+.流年列表 {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.大运项,
+.流年项 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 15px;
+  padding: 10px;
+  background-color: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+  transition: background-color 0.3s ease;
+}
+
+.大运项:hover,
+.流年项:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.大运年份,
+.流年年份 {
+  font-weight: bold;
+  color: #f39c12;
+  min-width: 100px;
+}
+
+.大运干支,
+.流年干支 {
+  font-weight: bold;
+  color: #e74c3c;
+  min-width: 80px;
+}
+
+.大运解读,
+.流年解读 {
+  flex: 1;
+  color: #e0e0e0;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+  .大运项,
+  .流年项 {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+  
+  .大运年份,
+  .流年年份,
+  .大运干支,
+  .流年干支 {
+    min-width: unset;
+  }
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+.form-group input, .form-group select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  font-size: 16px;
+  transition: border-color 0.3s ease;
+  background-color: #1a252f;
+  color: var(--text-color);
+}
+
+.form-row {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.form-group.half {
+  flex: 1;
+}
+
+.form-group input:focus, .form-group select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(139, 0, 0, 0.1);
+}
+
+.btn {
+  display: inline-block;
+  padding: 12px 30px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  text-align: center;
+}
+
+.btn.small {
+  padding: 6px 12px;
+  font-size: 14px;
+}
+
+.btn:hover {
+  background-color: #6b0000;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(139, 0, 0, 0.3);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+.result {
+  margin-top: 30px;
+  padding-top: 30px;
+  border-top: 1px solid var(--border-color);
+}
+
+.result h3 {
+  color: white;
+  margin-bottom: 15px;
+  font-size: 1.4rem;
+  font-family: 'SimSun', 'STSong', '宋体', serif;
+  font-weight: bold;
+}
+
+.bazi-chart {
+  display: table;
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+}
+
+.bazi-row {
+  display: table-row;
+}
+
+.bazi-row.header {
+  background-color: #1a252f;
+  font-weight: bold;
+}
+
+.bazi-cell {
+  display: table-cell;
+  border: 1px solid var(--border-color);
+  padding: 15px;
+  text-align: center;
+  vertical-align: middle;
+  color: var(--text-color);
+}
+
+.bazi-cell.label {
+  background-color: #1a252f;
+  font-weight: bold;
+  width: 100px;
+  text-align: left;
+  color: var(--text-color);
+}
+
+.bazi-cell.value {
+  font-size: 18px;
+  font-weight: bold;
+  color: var(--primary-color);
+}
+
+.bazi-cell.gan {
+  color: #3498db;
+  font-weight: bold;
+}
+
+.bazi-cell.zhi {
+  color: #27ae60;
+  font-weight: bold;
+}
+
+.bazi-cell.wu {
+  color: #f39c12;
+  font-weight: bold;
+}
+
+.wu-icon {
+  display: inline-block;
+  width: 1.2em;
+  height: 1.2em;
+  margin-left: 2px;
+  font-size: 0.9em;
+  vertical-align: middle;
+  font-style: normal;
+}
+
+.wu-icon.木::before { content: "🌲"; }
+.wu-icon.火::before { content: "🔥"; }
+.wu-icon.土::before { content: "🪨"; }
+.wu-icon.金::before { content: "💰"; }
+.wu-icon.水::before { content: "💧"; }
+
+.wu-xing-label.木::after { content: "🌲"; margin-left: 4px; }
+.wu-xing-label.火::after { content: "🔥"; margin-left: 4px; }
+.wu-xing-label.土::after { content: "🪨"; margin-left: 4px; }
+.wu-xing-label.金::after { content: "💰"; margin-left: 4px; }
+.wu-xing-label.水::after { content: "💧"; margin-left: 4px; }
+
+.wu-xing-analysis {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+}
+
+.wu-xing-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-top: 10px;
+}
+
+.wu-xing-item {
+  display: flex;
+  align-items: center;
+  padding: 5px 10px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+.wu-xing-label {
+  font-weight: bold;
+  margin-right: 5px;
+  color: #e0e0e0;
+}
+
+.wu-xing-value {
+  color: #4ecdc4;
+  font-size: 1.1em;
+}
+
+.analysis {
+  margin-top: 20px;
+  line-height: 1.8;
+  white-space: pre-wrap;
+}
+
+.analysis p {
+  margin-bottom: 10px;
+}
+
+.footer {
+  background-color: #1a252f;
+  color: var(--text-color);
+  text-align: center;
+  padding: 20px 0;
+  margin-top: 50px;
+}
+
+.history-list {
+  margin-top: 20px;
+}
+
+.history-item {
+  display: flex;
+  align-items: center;
+  padding: 15px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  margin-bottom: 10px;
+  background-color: #1a252f;
+  transition: all 0.3s ease;
+}
+
+.history-item:hover {
+  background-color: #2c3e50;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.history-info {
+  flex: 1;
+}
+
+.history-time {
+  display: block;
+  font-size: 12px;
+  color: #95a5a6;
+  margin-bottom: 5px;
+}
+
+.history-date {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+.history-bazi {
+  flex: 2;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.history-bazi span {
+  font-size: 16px;
+  font-weight: bold;
+  color: var(--primary-color);
+}
+
+.knowledge-card {
+  background-color: var(--card-bg);
+  border-left: 4px solid #ffffff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-height: 200px;
+  max-height: 200px;
+  overflow-y: auto;
+  /* 隐藏滚动条但保留滚动功能 */
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+/* 针对Chrome, Safari和Opera */
+.knowledge-card::-webkit-scrollbar {
+  width: 4px;
+}
+
+.knowledge-card::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.knowledge-card::-webkit-scrollbar-thumb {
+  background-color: transparent;
+  border-radius: 20px;
+}
+
+.knowledge-card:hover::-webkit-scrollbar-thumb {
+  background-color: rgba(139, 0, 0, 0.3);
+}
+
+.knowledge-card::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(139, 0, 0, 0.4);
+}
+
+.knowledge-card:hover {
+  box-shadow: 0 4px 12px rgba(139, 0, 0, 0.2);
+  transform: translateY(-2px);
+}
+
+.knowledge-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.knowledge-header h2 {
+  color: white;
+  margin: 0;
+  font-size: 1.5rem;
+  border-bottom: none;
+  padding-bottom: 0;
+  font-family: 'SimSun', 'STSong', '宋体', serif;
+  font-weight: bold;
+}
+
+.refresh-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.refresh-text {
+  font-size: 12px;
+  color: #bbb;
+  white-space: nowrap;
+}
+
+.refresh-icon {
+  font-size: 1.2rem;
+  color: white;
+  transition: transform 0.3s ease;
+}
+
+.knowledge-card:hover .refresh-icon {
+  transform: rotate(180deg);
+}
+
+.knowledge-content h3 {
+  color: white;
+  margin-bottom: 10px;
+  font-size: 1.2rem;
+  font-family: 'SimSun', 'STSong', '宋体', serif;
+  font-weight: bold;
+}
+
+.knowledge-content p {
+  line-height: 1.6;
+  color: var(--text-color);
+  margin-bottom: 15px;
+}
+
+.footer p {
+  opacity: 0.8;
+  font-size: 14px;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 10px;
+  }
+  
+  .header h1 {
+    font-size: 2rem;
+  }
+  
+  .card {
+    padding: 20px;
+  }
+  
+  .form-row {
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .form-group.half {
+    width: 100%;
+  }
+  
+  .history-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .history-bazi {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
