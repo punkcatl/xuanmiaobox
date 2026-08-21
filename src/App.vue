@@ -1266,31 +1266,18 @@ export default {
     },
     updateLunarInfo(date) {
       try {
-        // 导入lunar-calendar库
-        const lunar = require('lunar-calendar');
+        const solar = Solar.fromDate(date);
+        const lunar = solar.getLunar();
         
-        // 获取当前日期的农历信息
-        const year = date.getFullYear();
-        const month = date.getMonth() + 1;
-        const day = date.getDate();
-        
-        // 计算农历信息
-        const lunarInfo = lunar.solarToLunar(year, month, day);
-        
-        // 生肖映射
         const zodiacMap = {
           1: '🐭', 2: '🐮', 3: '🐯', 4: '🐰', 5: '🐲', 6: '🐍',
           7: '🐴', 8: '🐑', 9: '🐵', 10: '🐔', 11: '🐶', 12: '🐷'
         };
         
-        // 计算生肖
-        const zodiac = zodiacMap[lunarInfo.animalsYear] || '🐎';
+        const zodiac = zodiacMap[lunar.month] || '🐎';
+        this.lunarInfo = `${lunar.year}年${lunar.month}月${lunar.day} ${zodiac}`;
         
-        // 格式化农历信息，减少空格
-        this.lunarInfo = `${lunarInfo.lunarYear}年${lunarInfo.lunarMonth}月${lunarInfo.lunarDay} ${zodiac}`;
-        
-        // 获取节气
-        this.solarTerm = lunarInfo.solarTerm || '谷雨';
+        this.solarTerm = lunar.solarTerm || '谷雨';
       } catch (error) {
         console.error('农历计算错误:', error);
         // 备用方案
