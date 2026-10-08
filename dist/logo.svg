@@ -1,35 +1,32 @@
 <svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- 背景圆形 -->
-  <circle cx="100" cy="100" r="95" fill="#1a252f" stroke="#8B0000" stroke-width="2"/>
-  
-  <!-- 太极图案（简化版） -->
-  <path d="M100 20C144.183 20 180 55.8172 180 100C180 144.183 144.183 180 100 180C55.8172 180 20 144.183 20 100C20 55.8172 55.8172 20 100 20Z" fill="none" stroke="#8B0000" stroke-width="1.5"/>
-  <circle cx="100" cy="70" r="30" fill="#2c3e50" stroke="#8B0000" stroke-width="1"/>
-  <circle cx="100" cy="130" r="30" fill="#1a252f" stroke="#8B0000" stroke-width="1"/>
-  <circle cx="100" cy="70" r="10" fill="#1a252f"/>
-  <circle cx="100" cy="130" r="10" fill="#2c3e50"/>
-  
-  <!-- 猫的头部 -->
-  <path d="M70 85C60 85 55 95 55 105C55 115 65 125 75 125C80 135 90 140 100 140C110 140 120 135 125 125C135 125 145 115 145 105C145 95 140 85 130 85C120 75 110 70 100 70C90 70 80 75 70 85Z" fill="#2c3e50" stroke="#8B0000" stroke-width="1.5"/>
-  
-  <!-- 猫的耳朵 -->
-  <path d="M75 85L60 65L75 75L75 85Z" fill="#2c3e50" stroke="#8B0000" stroke-width="1.5"/>
-  <path d="M125 85L140 65L125 75L125 85Z" fill="#2c3e50" stroke="#8B0000" stroke-width="1.5"/>
-  
-  <!-- 猫的眼睛 -->
-  <path d="M85 95C85 95 80 100 80 105C80 110 85 115 90 115C95 115 100 110 100 105C100 100 95 95 90 95C85 95 85 95 85 95Z" fill="#8B0000"/>
-  <path d="M115 95C115 95 120 100 120 105C120 110 115 115 110 115C105 115 100 110 100 105C100 100 105 95 110 95C115 95 115 95 115 95Z" fill="#8B0000"/>
-  
-  <!-- 猫的鼻子 -->
-  <circle cx="100" cy="110" r="3" fill="#8B0000"/>
-  
-  <!-- 猫的胡须 -->
-  <path d="M90 115L75 120" stroke="#e0e0e0" stroke-width="1" stroke-linecap="round"/>
-  <path d="M90 120L75 125" stroke="#e0e0e0" stroke-width="1" stroke-linecap="round"/>
-  <path d="M110 115L125 120" stroke="#e0e0e0" stroke-width="1" stroke-linecap="round"/>
-  <path d="M110 120L125 125" stroke="#e0e0e0" stroke-width="1" stroke-linecap="round"/>
-  
-  <!-- 玄喵文字 -->
-  <text x="100" y="170" font-family="'SimSun', 'STSong', '宋体', serif" font-size="28" font-weight="bold" text-anchor="middle" fill="#e0e0e0">玄喵</text>
-  <text x="100" y="190" font-family="'SimSun', 'STSong', '宋体', serif" font-size="14" text-anchor="middle" fill="#8B0000">玄喵盒子</text>
+  <circle cx="100" cy="100" r="95" fill="#0a0d14" stroke="rgba(200,169,106,0.3)" stroke-width="1.5"/>
+
+  <!-- 猫耳朵 -->
+  <path d="M68 82L54 56L72 72Z" fill="#0f1320" stroke="rgba(200,169,106,0.4)" stroke-width="1.2" stroke-linejoin="round"/>
+  <path d="M132 82L146 56L128 72Z" fill="#0f1320" stroke="rgba(200,169,106,0.4)" stroke-width="1.2" stroke-linejoin="round"/>
+
+  <!-- 猫脸轮廓 -->
+  <ellipse cx="100" cy="105" rx="45" ry="40" fill="#0f1320" stroke="rgba(200,169,106,0.35)" stroke-width="1.2"/>
+
+  <!-- 左眼 -->
+  <ellipse cx="82" cy="98" rx="12" ry="8" fill="none" stroke="rgba(200,169,106,0.6)" stroke-width="1.2"/>
+  <ellipse cx="82" cy="98" rx="8" ry="6" fill="rgba(200,169,106,0.15)"/>
+  <rect x="81" y="91" width="2" height="14" rx="1" fill="rgba(200,169,106,0.7)"/>
+
+  <!-- 右眼 -->
+  <ellipse cx="118" cy="98" rx="12" ry="8" fill="none" stroke="rgba(200,169,106,0.6)" stroke-width="1.2"/>
+  <ellipse cx="118" cy="98" rx="8" ry="6" fill="rgba(200,169,106,0.15)"/>
+  <rect x="117" y="91" width="2" height="14" rx="1" fill="rgba(200,169,106,0.7)"/>
+
+  <!-- 鼻子 -->
+  <path d="M97 112L100 108L103 112Z" fill="rgba(200,169,106,0.5)"/>
+
+  <!-- 胡须 -->
+  <line x1="88" y1="112" x2="62" y2="108" stroke="rgba(200,169,106,0.25)" stroke-width="0.8" stroke-linecap="round"/>
+  <line x1="88" y1="116" x2="60" y2="118" stroke="rgba(200,169,106,0.25)" stroke-width="0.8" stroke-linecap="round"/>
+  <line x1="112" y1="112" x2="138" y2="108" stroke="rgba(200,169,106,0.25)" stroke-width="0.8" stroke-linecap="round"/>
+  <line x1="112" y1="116" x2="140" y2="118" stroke="rgba(200,169,106,0.25)" stroke-width="0.8" stroke-linecap="round"/>
+
+  <!-- 品牌名 -->
+  <text x="100" y="168" font-family="'Noto Serif SC','Songti SC',serif" font-size="22" font-weight="400" text-anchor="middle" fill="rgba(242,238,230,0.85)" letter-spacing="0.1em">玄喵</text>
 </svg>

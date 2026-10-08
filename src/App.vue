@@ -1,19 +1,28 @@
 <template>
   <div class="container">
-    <div class="header">
-      <div class="header-left">
-        <h1>玄喵盒子</h1>
-        <p>八字查询与解读</p>
-      </div>
-      <div class="header-right">
-        <div class="real-time-info">
-          <div class="solar-date">{{ solarDate }}</div>
-          <div class="lunar-info">{{ lunarInfo }}</div>
-          <div class="term-time-container">
-            <span class="solar-term">{{ solarTerm }}</span>
-            <span class="time-separator">|</span>
-            <span class="time">{{ currentTime }}</span>
+    <div class="hero">
+      <div class="hero-stardust"></div>
+      <div class="hero-eye">
+        <div class="eye-outer">
+          <div class="eye-iris">
+            <div class="eye-iris-ring"></div>
+            <div class="eye-pupil"></div>
+            <div class="eye-shine"></div>
           </div>
+        </div>
+      </div>
+      <div class="hero-content">
+        <h1 class="hero-title">玄喵盒子</h1>
+        <div class="hero-meta">
+          <span class="hero-date">{{ solarDate }}</span>
+          <span class="hero-sep">·</span>
+          <span class="hero-lunar">{{ lunarInfo }}</span>
+          <template v-if="solarTerm">
+            <span class="hero-sep">·</span>
+            <span class="solar-term">{{ solarTerm }}</span>
+          </template>
+          <span class="hero-sep">·</span>
+          <span class="hero-clock">{{ currentTime }}</span>
         </div>
       </div>
     </div>
@@ -26,44 +35,45 @@
           <span class="refresh-icon">↻</span>
         </div>
       </div>
-      <div class="knowledge-content">
-        <h3>{{ currentKnowledge.term }}</h3>
-        <p>{{ currentKnowledge.explanation }}</p>
-      </div>
+      <transition name="knowledge-fade" mode="out-in">
+        <div class="knowledge-content" :key="currentKnowledgeIndex">
+          <h3>{{ currentKnowledge.term }}</h3>
+          <p>{{ currentKnowledge.explanation }}</p>
+        </div>
+      </transition>
     </div>
     
     <div class="card">
       <h2>八字查询</h2>
-      <div class="bazi-container">
         <div class="bazi-form">
           <form @submit.prevent="calculateBazi">
-            <div class="form-group">
-              <label for="year">出生年份</label>
-              <input type="number" id="year" v-model.number="form.year" min="1900" max="2050" required>
-            </div>
-            
-            <div class="form-group">
-              <label for="month">出生月份</label>
-              <select id="month" v-model.number="form.month" required>
-                <option v-for="m in 12" :key="m" :value="m">{{ m }}月</option>
-              </select>
-            </div>
-            
-            <div class="form-group">
-              <label for="day">出生日</label>
-              <input type="number" id="day" v-model.number="form.day" min="1" max="31" required>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="year">年</label>
+                <input type="number" id="year" v-model.number="form.year" min="1900" max="2050" required>
+              </div>
+              <div class="form-group">
+                <label for="month">月</label>
+                <select id="month" v-model.number="form.month" required>
+                  <option v-for="m in 12" :key="m" :value="m">{{ m }}月</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="day">日</label>
+                <input type="number" id="day" v-model.number="form.day" min="1" max="31" required>
+              </div>
             </div>
             
             <div class="form-row">
               <div class="form-group half">
-                <label for="hour">出生时</label>
+                <label for="hour">时</label>
                 <select id="hour" v-model.number="form.hour" required>
-                  <option v-for="h in 24" :key="h" :value="h">{{ h }}时</option>
+                  <option v-for="h in 24" :key="h-1" :value="h-1">{{ h-1 }}时</option>
                 </select>
               </div>
               
               <div class="form-group half">
-                <label for="minute">出生分</label>
+                <label for="minute">分</label>
                 <select id="minute" v-model.number="form.minute" required>
                   <option v-for="m in 60" :key="m" :value="m-1">{{ m-1 }}分</option>
                 </select>
@@ -72,38 +82,39 @@
             
             <div class="form-row">
               <div class="form-group">
-                <label for="province">省份</label>
+                <label for="province">省</label>
                 <select id="province" v-model="form.province" required @change="updateCities">
                   <option v-for="province in provinces" :key="province" :value="province">{{ province }}</option>
                 </select>
               </div>
               
               <div class="form-group">
-                <label for="city">城市</label>
+                <label for="city">市</label>
                 <select id="city" v-model="form.city" required @change="updateDistricts">
                   <option v-for="city in cities" :key="city" :value="city">{{ city }}</option>
                 </select>
               </div>
               
               <div class="form-group">
-                <label for="district">区县</label>
+                <label for="district">区</label>
                 <select id="district" v-model="form.district" required>
                   <option v-for="district in districts" :key="district" :value="district">{{ district }}</option>
                 </select>
               </div>
             </div>
             
-            <div class="form-group checkbox-group">
-              <input type="checkbox" id="useTrueSolarTime" v-model="form.useTrueSolarTime">
-              <label for="useTrueSolarTime">使用真太阳时</label>
-            </div>
-            
-            <div class="form-group">
-              <label for="gender">性别</label>
-              <select id="gender" v-model="form.gender" required>
-                <option value="male">男</option>
-                <option value="female">女</option>
-              </select>
+            <div class="form-row" style="align-items: flex-end;">
+              <div class="form-group checkbox-group">
+                <input type="checkbox" id="useTrueSolarTime" v-model="form.useTrueSolarTime">
+                <label for="useTrueSolarTime">真太阳时</label>
+              </div>
+              <div class="form-group">
+                <label for="gender">性别</label>
+                <select id="gender" v-model="form.gender" required>
+                  <option value="male">男</option>
+                  <option value="female">女</option>
+                </select>
+              </div>
             </div>
             
             <button type="submit" class="btn">查询八字</button>
@@ -111,116 +122,69 @@
         </div>
         
         <div v-if="result" class="bazi-result">
-          <h3>八字命盘</h3>
-          <div class="bazi-chart">
-            <!-- 列标题 -->
-            <div class="bazi-row header">
-              <div class="bazi-cell label">项目</div>
-              <div class="bazi-cell">年柱</div>
-              <div class="bazi-cell">月柱</div>
-              <div class="bazi-cell">日柱</div>
-              <div class="bazi-cell">时柱</div>
-            </div>
-
-            <!-- 天干 -->
-            <div class="bazi-row">
-              <div class="bazi-cell label">天干</div>
-              <div class="bazi-cell gan">
-                <span>{{ result.bazi[0].value.charAt(0) }}</span>
-                <i class="wu-icon" :class="result.bazi[0].wuXing.tianGan"></i>
-              </div>
-              <div class="bazi-cell gan">
-                <span>{{ result.bazi[1].value.charAt(0) }}</span>
-                <i class="wu-icon" :class="result.bazi[1].wuXing.tianGan"></i>
-              </div>
-              <div class="bazi-cell gan">
-                <span>{{ result.bazi[2].value.charAt(0) }}</span>
-                <i class="wu-icon" :class="result.bazi[2].wuXing.tianGan"></i>
-              </div>
-              <div class="bazi-cell gan">
-                <span>{{ result.bazi[3].value.charAt(0) }}</span>
-                <i class="wu-icon" :class="result.bazi[3].wuXing.tianGan"></i>
+          <div class="result-section result-chart">
+            <h3>八字命盘</h3>
+            <div class="pillar-array">
+              <div class="pillar" v-for="(p, i) in result.bazi" :key="i" :class="'wx-' + p.wuXing.tianGan">
+                <div class="pillar-label">{{ p.label }}</div>
+                <div class="pillar-body">
+                  <div class="pillar-stem">
+                    <span class="pillar-han">{{ p.value.charAt(0) }}</span>
+                    <span class="pillar-meta">{{ p.wuXing.tianGan.toUpperCase ? wuXingEn[p.wuXing.tianGan] : '' }}</span>
+                  </div>
+                  <div class="pillar-divider"></div>
+                  <div class="pillar-branch">
+                    <span class="pillar-han">{{ p.value.charAt(1) }}</span>
+                    <span class="pillar-meta">{{ p.wuXing.diZhi.toUpperCase ? wuXingEn[p.wuXing.diZhi] : '' }}</span>
+                  </div>
+                </div>
+                <div class="pillar-glow"></div>
               </div>
             </div>
-            <!-- 地支 -->
-            <div class="bazi-row">
-              <div class="bazi-cell label">地支</div>
-              <div class="bazi-cell zhi">
-                <span>{{ result.bazi[0].value.charAt(1) }}</span>
-                <i class="wu-icon" :class="result.bazi[0].wuXing.diZhi"></i>
-              </div>
-              <div class="bazi-cell zhi">
-                <span>{{ result.bazi[1].value.charAt(1) }}</span>
-                <i class="wu-icon" :class="result.bazi[1].wuXing.diZhi"></i>
-              </div>
-              <div class="bazi-cell zhi">
-                <span>{{ result.bazi[2].value.charAt(1) }}</span>
-                <i class="wu-icon" :class="result.bazi[2].wuXing.diZhi"></i>
-              </div>
-              <div class="bazi-cell zhi">
-                <span>{{ result.bazi[3].value.charAt(1) }}</span>
-                <i class="wu-icon" :class="result.bazi[3].wuXing.diZhi"></i>
-              </div>
-            </div>
-          </div>
-          
-          <h3>八字解读</h3>
-          <div class="analysis">
-            <p>{{ result.analysis }}</p>
-          </div>
-          
-          <h3>五行分析</h3>
-          <div class="wu-xing-analysis">
-            <div class="wu-xing-stats">
-              <div class="wu-xing-item">
-                <span class="wu-xing-label 木">木</span>
-                <span class="wu-xing-value">{{ result.wuXing.木 }}</span>
-              </div>
-              <div class="wu-xing-item">
-                <span class="wu-xing-label 火">火</span>
-                <span class="wu-xing-value">{{ result.wuXing.火 }}</span>
-              </div>
-              <div class="wu-xing-item">
-                <span class="wu-xing-label 土">土</span>
-                <span class="wu-xing-value">{{ result.wuXing.土 }}</span>
-              </div>
-              <div class="wu-xing-item">
-                <span class="wu-xing-label 金">金</span>
-                <span class="wu-xing-value">{{ result.wuXing.金 }}</span>
-              </div>
-              <div class="wu-xing-item">
-                <span class="wu-xing-label 水">水</span>
-                <span class="wu-xing-value">{{ result.wuXing.水 }}</span>
-              </div>
-            </div>
-          </div>
-          
-          <h3>大运流年分析</h3>
-          <div class="大运流年分析">
-            <div class="大运分析">
-              <h4>大运</h4>
-              <div class="大运列表">
-                <div class="大运项" v-for="(大运, index) in result.大运" :key="index">
-                  <span class="大运年份">{{大运.startYear}}-{{大运.endYear}}岁</span>
-                  <span class="大运干支">{{大运.ganZhi}}</span>
-                  <span class="大运解读">{{大运.analysis}}</span>
+            <div class="wu-xing-analysis">
+              <div class="wu-xing-stats">
+                <div class="wu-xing-item" v-for="(count, name) in result.wuXing" :key="name">
+                  <span class="wu-xing-label" :class="name">{{ name }}</span>
+                  <span class="wu-xing-value">{{ count }}</span>
                 </div>
               </div>
             </div>
-            
-            <div class="流年分析">
-              <h4>流年</h4>
-              <div class="流年列表">
-                <div class="流年项" v-for="(流年, index) in result.流年" :key="index">
-                  <span class="流年年份">{{流年.year}}年</span>
-                  <span class="流年干支">{{流年.ganZhi}}</span>
-                  <span class="流年解读">{{流年.analysis}}</span>
+          </div>
+
+          <div class="result-section result-reading">
+            <h3>八字解读</h3>
+            <div class="analysis">
+              <p v-for="(line, i) in result.analysis.split('\n').filter(l => l.trim())" :key="i">{{ line }}</p>
+            </div>
+          </div>
+
+          <div class="result-section result-forecast">
+            <h3>大运流年分析</h3>
+            <div class="大运流年分析">
+              <div class="大运分析">
+                <h4>大运</h4>
+                <div class="大运列表">
+                  <div class="大运项" v-for="(大运, index) in result.大运" :key="index">
+                    <span class="大运年份">{{大运.startYear}}-{{大运.endYear}}岁</span>
+                    <span class="大运干支">{{大运.ganZhi}}</span>
+                    <span class="大运解读">{{大运.analysis}}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="流年分析">
+                <h4>流年</h4>
+                <div class="流年列表">
+                  <div class="流年项" v-for="(流年, index) in result.流年" :key="index">
+                    <span class="流年年份">{{流年.year}}年</span>
+                    <span class="流年干支">{{流年.ganZhi}}</span>
+                    <span class="流年解读">{{流年.analysis}}</span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
     </div>
     
 
@@ -252,7 +216,7 @@
               <div class="form-group half">
                 <label for="party1-hour">出生时</label>
                 <select id="party1-hour" v-model.number="form2.party1.hour" required>
-                  <option v-for="h in 24" :key="h" :value="h">{{ h }}时</option>
+                  <option v-for="h in 24" :key="h-1" :value="h-1">{{ h-1 }}时</option>
                 </select>
               </div>
               
@@ -296,7 +260,7 @@
               <div class="form-group half">
                 <label for="party2-hour">出生时</label>
                 <select id="party2-hour" v-model.number="form2.party2.hour" required>
-                  <option v-for="h in 24" :key="h" :value="h">{{ h }}时</option>
+                  <option v-for="h in 24" :key="h-1" :value="h-1">{{ h-1 }}时</option>
                 </select>
               </div>
               
@@ -336,17 +300,17 @@
               </div>
               <div class="bazi-row">
                 <div class="bazi-cell label">天干</div>
-                <div class="bazi-cell gan">{{ compatibilityResult.party1.bazi[0].value.charAt(0) }}</div>
-                <div class="bazi-cell gan">{{ compatibilityResult.party1.bazi[1].value.charAt(0) }}</div>
-                <div class="bazi-cell gan">{{ compatibilityResult.party1.bazi[2].value.charAt(0) }}</div>
-                <div class="bazi-cell gan">{{ compatibilityResult.party1.bazi[3].value.charAt(0) }}</div>
+                <div class="bazi-cell gan"><span>{{ compatibilityResult.party1.bazi[0].value.charAt(0) }}</span></div>
+                <div class="bazi-cell gan"><span>{{ compatibilityResult.party1.bazi[1].value.charAt(0) }}</span></div>
+                <div class="bazi-cell gan"><span>{{ compatibilityResult.party1.bazi[2].value.charAt(0) }}</span></div>
+                <div class="bazi-cell gan"><span>{{ compatibilityResult.party1.bazi[3].value.charAt(0) }}</span></div>
               </div>
               <div class="bazi-row">
                 <div class="bazi-cell label">地支</div>
-                <div class="bazi-cell zhi">{{ compatibilityResult.party1.bazi[0].value.charAt(1) }}</div>
-                <div class="bazi-cell zhi">{{ compatibilityResult.party1.bazi[1].value.charAt(1) }}</div>
-                <div class="bazi-cell zhi">{{ compatibilityResult.party1.bazi[2].value.charAt(1) }}</div>
-                <div class="bazi-cell zhi">{{ compatibilityResult.party1.bazi[3].value.charAt(1) }}</div>
+                <div class="bazi-cell zhi"><span>{{ compatibilityResult.party1.bazi[0].value.charAt(1) }}</span></div>
+                <div class="bazi-cell zhi"><span>{{ compatibilityResult.party1.bazi[1].value.charAt(1) }}</span></div>
+                <div class="bazi-cell zhi"><span>{{ compatibilityResult.party1.bazi[2].value.charAt(1) }}</span></div>
+                <div class="bazi-cell zhi"><span>{{ compatibilityResult.party1.bazi[3].value.charAt(1) }}</span></div>
               </div>
             </div>
           </div>
@@ -363,17 +327,17 @@
               </div>
               <div class="bazi-row">
                 <div class="bazi-cell label">天干</div>
-                <div class="bazi-cell gan">{{ compatibilityResult.party2.bazi[0].value.charAt(0) }}</div>
-                <div class="bazi-cell gan">{{ compatibilityResult.party2.bazi[1].value.charAt(0) }}</div>
-                <div class="bazi-cell gan">{{ compatibilityResult.party2.bazi[2].value.charAt(0) }}</div>
-                <div class="bazi-cell gan">{{ compatibilityResult.party2.bazi[3].value.charAt(0) }}</div>
+                <div class="bazi-cell gan"><span>{{ compatibilityResult.party2.bazi[0].value.charAt(0) }}</span></div>
+                <div class="bazi-cell gan"><span>{{ compatibilityResult.party2.bazi[1].value.charAt(0) }}</span></div>
+                <div class="bazi-cell gan"><span>{{ compatibilityResult.party2.bazi[2].value.charAt(0) }}</span></div>
+                <div class="bazi-cell gan"><span>{{ compatibilityResult.party2.bazi[3].value.charAt(0) }}</span></div>
               </div>
               <div class="bazi-row">
                 <div class="bazi-cell label">地支</div>
-                <div class="bazi-cell zhi">{{ compatibilityResult.party2.bazi[0].value.charAt(1) }}</div>
-                <div class="bazi-cell zhi">{{ compatibilityResult.party2.bazi[1].value.charAt(1) }}</div>
-                <div class="bazi-cell zhi">{{ compatibilityResult.party2.bazi[2].value.charAt(1) }}</div>
-                <div class="bazi-cell zhi">{{ compatibilityResult.party2.bazi[3].value.charAt(1) }}</div>
+                <div class="bazi-cell zhi"><span>{{ compatibilityResult.party2.bazi[0].value.charAt(1) }}</span></div>
+                <div class="bazi-cell zhi"><span>{{ compatibilityResult.party2.bazi[1].value.charAt(1) }}</span></div>
+                <div class="bazi-cell zhi"><span>{{ compatibilityResult.party2.bazi[2].value.charAt(1) }}</span></div>
+                <div class="bazi-cell zhi"><span>{{ compatibilityResult.party2.bazi[3].value.charAt(1) }}</span></div>
               </div>
             </div>
           </div>
@@ -381,7 +345,9 @@
         
         <div class="compatibility-analysis">
           <h4>合盘解读</h4>
-          <p>{{ compatibilityResult.analysis }}</p>
+          <div class="analysis">
+            <p v-for="(line, i) in compatibilityResult.analysis.split('\n').filter(l => l.trim())" :key="i">{{ line }}</p>
+          </div>
           <div class="compatibility-score">
             <span class="score-label">合盘得分：</span>
             <span class="score-value">{{ compatibilityResult.score }}</span>
@@ -408,7 +374,7 @@
 
 <script>
 // 导入 lunar-calendar 库
-import { Solar, Lunar } from 'lunar-calendar';
+import LunarCalendar from 'lunar-calendar';
 
 export default {
   name: 'App',
@@ -784,7 +750,33 @@ export default {
         '甲午', '乙未', '丙申', '丁酉', '戊戌', '己亥', '庚子', '辛丑', '壬寅', '癸卯',
         '甲辰', '乙巳', '丙午', '丁未', '戊申', '己酉', '庚戌', '辛亥', '壬子', '癸丑',
         '甲寅', '乙卯', '丙辰', '丁巳', '戊午', '己未', '庚申', '辛酉', '壬戌', '癸亥'
-      ]
+      ],
+      // 地支藏干表（本气/中气/余气 + 权重）
+      diZhiCangGan: {
+        '子': [['癸', 100]],
+        '丑': [['己', 100], ['癸', 60], ['辛', 30]],
+        '寅': [['甲', 100], ['丙', 60], ['戊', 30]],
+        '卯': [['乙', 100]],
+        '辰': [['戊', 100], ['乙', 60], ['癸', 30]],
+        '巳': [['丙', 100], ['庚', 60], ['戊', 30]],
+        '午': [['丁', 100], ['己', 60]],
+        '未': [['己', 100], ['丁', 60], ['乙', 30]],
+        '申': [['庚', 100], ['壬', 60], ['戊', 30]],
+        '酉': [['辛', 100]],
+        '戌': [['戊', 100], ['辛', 60], ['丁', 30]],
+        '亥': [['壬', 100], ['甲', 60]]
+      },
+      // 十二节（月界标志，非气）
+      jieTerms: ['小寒', '立春', '惊蛰', '清明', '立夏', '芒种', '小暑', '立秋', '白露', '寒露', '立冬', '大雪'],
+      // 同党五行（印+比劫）
+      allyMap: {
+        '木': ['木', '水'],
+        '火': ['火', '木'],
+        '土': ['土', '火'],
+        '金': ['金', '土'],
+        '水': ['水', '金']
+      },
+      wuXingEn: { '木': 'WOOD', '火': 'FIRE', '土': 'EARTH', '金': 'METAL', '水': 'WATER' }
     }
   },
   computed: {
@@ -861,28 +853,28 @@ export default {
     
     // 计算真太阳时
     calculateTrueSolarTime(year, month, day, hour, minute, longitude) {
-      // 简化的真太阳时计算
-      // 1. 计算经度时差（每度4分钟）
-      const longitudeOffset = (longitude - 120) * 4; // 以120°E为基准
-      
-      // 2. 转换为小时和分钟
-      const offsetHours = Math.floor(longitudeOffset / 60);
-      const offsetMinutes = Math.abs(longitudeOffset % 60);
-      
-      // 3. 调整时间
-      let totalMinutes = hour * 60 + minute + (longitudeOffset > 0 ? offsetMinutes : -offsetMinutes) + offsetHours * 60;
-      
-      // 4. 处理时间溢出
-      if (totalMinutes < 0) {
-        totalMinutes += 24 * 60;
-      } else if (totalMinutes >= 24 * 60) {
-        totalMinutes -= 24 * 60;
-      }
-      
-      const trueHour = Math.floor(totalMinutes / 60);
-      const trueMinute = totalMinutes % 60;
-      
-      return { hour: trueHour, minute: trueMinute };
+      // 1. 经度时差（每度4分钟，以120°E为基准）
+      const longitudeOffset = (longitude - 120) * 4;
+
+      // 2. 均时差（Equation of Time）
+      const d = new Date(year, month - 1, day);
+      const startOfYear = new Date(year, 0, 1);
+      const dayOfYear = Math.floor((d - startOfYear) / 86400000) + 1;
+      const B = (360 / 365.24) * (dayOfYear - 81) * Math.PI / 180;
+      const EoT = 9.87 * Math.sin(2 * B) - 7.53 * Math.cos(B) - 1.5 * Math.sin(B);
+
+      // 3. 总修正 = 经度差 + 均时差
+      const totalOffset = longitudeOffset + EoT;
+
+      // 4. 应用修正
+      let totalMinutes = hour * 60 + minute + totalOffset;
+      if (totalMinutes < 0) totalMinutes += 1440;
+      if (totalMinutes >= 1440) totalMinutes -= 1440;
+
+      return {
+        hour: Math.floor(totalMinutes / 60),
+        minute: Math.round(totalMinutes % 60)
+      };
     },
     
     // 计算八字五行
@@ -894,8 +886,35 @@ export default {
         diZhi: this.wuXing.diZhi[diZhi] || ''
       };
     },
+    calculateWeightedWuXing(bazi) {
+      const stats = { 木: 0, 火: 0, 土: 0, 金: 0, 水: 0 };
+      // 天干：各 100
+      bazi.forEach(p => {
+        const gan = p.value.charAt(0);
+        const wx = this.wuXing.tianGan[gan];
+        if (wx) stats[wx] += 100;
+      });
+      // 地支藏干：本气100/中气60/余气30，月支本气×1.5
+      bazi.forEach((p, i) => {
+        const zhi = p.value.charAt(1);
+        const hidden = this.diZhiCangGan[zhi];
+        if (!hidden) return;
+        hidden.forEach(([stem, weight], j) => {
+          const wx = this.wuXing.tianGan[stem];
+          if (!wx) return;
+          const multiplier = (i === 1 && j === 0) ? 1.5 : 1;
+          stats[wx] += weight * multiplier;
+        });
+      });
+      return stats;
+    },
     
     calculateBazi() {
+      const testDate = new Date(this.form.year, this.form.month - 1, this.form.day)
+      if (testDate.getMonth() + 1 !== this.form.month || testDate.getDate() !== this.form.day) {
+        alert('日期不存在，请检查输入')
+        return
+      }
       try {
         // 获取区县的经纬度
         const districtCoord = this.districtCoordinates[this.form.district];
@@ -916,17 +935,28 @@ export default {
           minute = trueSolarTime.minute;
         }
         
+        // 晚子时处理：23:00后日柱归次日
+        let calcYear = this.form.year;
+        let calcMonth = this.form.month;
+        let calcDay = this.form.day;
+        if (hour >= 23) {
+          const nextDay = new Date(this.form.year, this.form.month - 1, this.form.day + 1);
+          calcYear = nextDay.getFullYear();
+          calcMonth = nextDay.getMonth() + 1;
+          calcDay = nextDay.getDate();
+        }
         // 使用 lunar-calendar 库计算八字
-        // 创建太阳历日期
-        const solar = new Solar(this.form.year, this.form.month, this.form.day, hour, minute);
-        // 转换为农历
-        const lunar = solar.getLunar();
-        
-        // 获取八字信息
-        const yearGanZhi = lunar.getYearGanZhi();
-        const monthGanZhi = lunar.getMonthGanZhi();
-        const dayGanZhi = lunar.getDayGanZhi();
-        const hourGanZhi = lunar.getTimeGanZhi();
+        const lunar = LunarCalendar.solarToLunar(calcYear, calcMonth, calcDay)
+
+        const yearGanZhi = lunar.GanZhiYear
+        const monthGanZhi = lunar.GanZhiMonth
+        const dayGanZhi = lunar.GanZhiDay
+
+        // 时柱：日干起时法
+        const shiChenIndex = Math.floor((hour + 1) % 24 / 2)
+        const dayGanIndex = this.tianGan.indexOf(dayGanZhi.charAt(0))
+        const shiGanStart = [0, 2, 4, 6, 8][dayGanIndex % 5]
+        const hourGanZhi = this.tianGan[(shiGanStart + shiChenIndex) % 10] + this.diZhi[shiChenIndex]
         
         // 计算五行
         const yearWuXing = this.calculateWuXing(yearGanZhi);
@@ -970,18 +1000,18 @@ export default {
         
         // 计算大运
         const 大运 = this.calculate大运(bazi, this.form.gender);
-        
-        // 计算流年
-        const 流年 = this.calculate流年(bazi);
-        
-        // 生成结果
+        const weightedWuXing = this.calculateWeightedWuXing(bazi);
+
+        // 先创建 result（流年解读需要 this.result.bazi）
         this.result = {
           bazi: bazi,
           wuXing: wuXingStats,
-          analysis: this.generateAnalysis(yearGanZhi, monthGanZhi, dayGanZhi, hourGanZhi),
+          analysis: this.generateAnalysis(yearGanZhi, monthGanZhi, dayGanZhi, hourGanZhi, weightedWuXing),
           大运: 大运,
-          流年: 流年
+          流年: []
         };
+        // 流年需要 this.result 已存在才能读日元
+        this.result.流年 = this.calculate流年(bazi);
         
 
       } catch (error) {
@@ -1067,22 +1097,19 @@ export default {
         if (item.diZhi) wuXingStats[item.diZhi]++;
       });
       
-      // 计算大运
       const 大运 = this.calculate大运(bazi, this.form.gender);
-      
-      // 计算流年
-      const 流年 = this.calculate流年(bazi);
-      
-      // 生成结果
+      const weightedWuXing = this.calculateWeightedWuXing(bazi);
+
       this.result = {
         bazi: bazi,
         wuXing: wuXingStats,
-        analysis: this.generateAnalysis(yearGanZhi, monthGanZhi, dayGanZhi, hourGanZhi),
+        analysis: this.generateAnalysis(yearGanZhi, monthGanZhi, dayGanZhi, hourGanZhi, weightedWuXing),
         大运: 大运,
-        流年: 流年
+        流年: []
       };
+      this.result.流年 = this.calculate流年(bazi);
     },
-    generateAnalysis(year, month, day, hour) {
+    generateAnalysis(year, month, day, hour, weightedWuXing) {
       const yearGanZhi = year;
       const monthGanZhi = month;
       const dayGanZhi = day;
@@ -1101,7 +1128,7 @@ export default {
       });
       
       const dayMasterInfo = this.getDayMasterInfo(dayGan, dayWuXing);
-      const analysis = this.analyzeWuXingBalance(wuXingStats, dayWuXing, monthGanZhi);
+      const analysis = this.analyzeWuXingBalance(weightedWuXing || wuXingStats, dayWuXing, monthGanZhi);
       
       return this.generateComprehensiveAnalysis(dayMasterInfo, wuXingStats, analysis);
     },
@@ -1166,26 +1193,38 @@ export default {
       let dayMasterStatus = '';
       let useGod = [];
       let avoidGod = [];
-      
-      const isStrong = wuXingStats[dayWuXing] >= 2;
-      
+
+      // 计算同党（印+比劫）占比
+      const allies = this.allyMap[dayWuXing] || [dayWuXing];
+      const total = Object.values(wuXingStats).reduce((a, b) => a + b, 0);
+      const allyTotal = allies.reduce((sum, wx) => sum + (wuXingStats[wx] || 0), 0);
+      const ratio = total > 0 ? allyTotal / total : 0.5;
+
+      if (ratio > 0.55) {
+        dayMasterStatus = '身强';
+      } else if (ratio < 0.45) {
+        dayMasterStatus = '身弱';
+      } else {
+        dayMasterStatus = '中和';
+      }
+
+      const isStrong = ratio > 0.5;
+
       if (isStrong) {
-        dayMasterStatus = '身旺';
         if (dayWuXing === '木') { useGod = ['金', '土']; avoidGod = ['水', '木']; }
         else if (dayWuXing === '火') { useGod = ['水', '金']; avoidGod = ['木', '火']; }
         else if (dayWuXing === '土') { useGod = ['木', '水']; avoidGod = ['火', '土']; }
         else if (dayWuXing === '金') { useGod = ['火', '木']; avoidGod = ['土', '金']; }
         else if (dayWuXing === '水') { useGod = ['土', '火']; avoidGod = ['金', '水']; }
       } else {
-        dayMasterStatus = '身弱';
         if (dayWuXing === '木') { useGod = ['水', '木']; avoidGod = ['金', '土']; }
         else if (dayWuXing === '火') { useGod = ['木', '火']; avoidGod = ['水', '金']; }
         else if (dayWuXing === '土') { useGod = ['火', '土']; avoidGod = ['木', '水']; }
         else if (dayWuXing === '金') { useGod = ['土', '金']; avoidGod = ['火', '木']; }
         else if (dayWuXing === '水') { useGod = ['金', '水']; avoidGod = ['土', '火']; }
       }
-      
-      return { status: dayMasterStatus, useGod, avoidGod };
+
+      return { status: dayMasterStatus, useGod, avoidGod, ratio };
     },
     
     generateComprehensiveAnalysis(dayMasterInfo, wuXingStats, analysis) {
@@ -1266,137 +1305,171 @@ export default {
     },
     updateLunarInfo(date) {
       try {
-        const solar = Solar.fromDate(date);
-        const lunar = solar.getLunar();
-        
-        const zodiacMap = {
-          1: '🐭', 2: '🐮', 3: '🐯', 4: '🐰', 5: '🐲', 6: '🐍',
-          7: '🐴', 8: '🐑', 9: '🐵', 10: '🐔', 11: '🐶', 12: '🐷'
-        };
-        
-        const zodiac = zodiacMap[lunar.month] || '🐎';
-        this.lunarInfo = `${lunar.year}年${lunar.month}月${lunar.day} ${zodiac}`;
-        
-        this.solarTerm = lunar.solarTerm || '谷雨';
+        const year = date.getFullYear()
+        const month = date.getMonth() + 1
+        const day = date.getDate()
+        const lunar = LunarCalendar.solarToLunar(year, month, day)
+
+        const zodiacEmojiMap = {
+          '鼠': '🐭', '牛': '🐮', '虎': '🐯', '兔': '🐰', '龙': '🐲', '蛇': '🐍',
+          '马': '🐴', '羊': '🐑', '猴': '🐵', '鸡': '🐔', '狗': '🐶', '猪': '🐷'
+        }
+        const zodiacEmoji = zodiacEmojiMap[lunar.zodiac] || '🐾'
+        const monthName = lunar.lunarMonthName || ''
+        const dayName = lunar.lunarDayName || `${Math.floor(lunar.lunarDay)}日`
+        this.lunarInfo = `${monthName}${dayName} ${zodiacEmoji}`
+        this.solarTerm = lunar.term || ''
       } catch (error) {
-        console.error('农历计算错误:', error);
-        // 备用方案
-        const year = date.getFullYear();
-        const month = date.getMonth() + 1;
-        const day = date.getDate();
-        
-        // 2026年农历信息（简化版）
-        const lunarData = {
-          '04-24': { lunar: '丙午年三月初八', zodiac: '🐎', term: '谷雨' },
-          '04-25': { lunar: '丙午年三月初九', zodiac: '🐎', term: '谷雨' },
-          '04-26': { lunar: '丙午年三月初十', zodiac: '🐎', term: '谷雨' },
-          '04-27': { lunar: '丙午年三月十一', zodiac: '🐎', term: '谷雨' },
-          '04-28': { lunar: '丙午年三月十二', zodiac: '🐎', term: '谷雨' },
-          '04-29': { lunar: '丙午年三月十三', zodiac: '🐎', term: '谷雨' },
-          '04-30': { lunar: '丙午年三月十四', zodiac: '🐎', term: '谷雨' },
-          '05-01': { lunar: '丙午年三月十五', zodiac: '🐎', term: '立夏' }
-        };
-        
-        const dateKey = `${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-        const todayLunar = lunarData[dateKey] || { lunar: '丙午年三月初八', zodiac: '🐎', term: '谷雨' };
-        
-        this.lunarInfo = `${todayLunar.lunar} ${todayLunar.zodiac}`;
-        this.solarTerm = todayLunar.term;
+        console.error('农历计算错误:', error)
+        this.lunarInfo = '农历加载中...'
+        this.solarTerm = ''
       }
     },
     calculate大运(bazi, gender) {
-      // 简化的大运计算逻辑
-      // 实际应用中需要更复杂的算法
-      
       const 大运List = [];
       const 月柱 = bazi[1].value;
       const 月柱Index = this.liuShiJiaZi.indexOf(月柱);
-      
-      // 确定大运排列方向（男顺女逆）
-      const direction = gender === 'male' ? 1 : -1;
-      
-      // 计算大运开始年龄（通常为1-10岁之间）
-      const 开始年龄 = 6; // 简化处理，实际需要根据出生月份和节气计算
-      
-      // 生成10步大运
+
+      // 大运方向：阳年男/阴年女 顺行，阴年男/阳年女 逆行
+      const yearGan = bazi[0].value.charAt(0);
+      const yearGanIndex = this.tianGan.indexOf(yearGan);
+      const isYangYear = yearGanIndex % 2 === 0;
+      const isMale = gender === 'male';
+      const direction = (isYangYear === isMale) ? 1 : -1;
+
+      // 大运起步年龄：从出生日到最近的节（顺行找后一个节，逆行找前一个节）
+      let startAge = 6; // fallback
+      try {
+        let days = 0;
+        const searchDir = direction;
+        const searchDate = new Date(this.form.year, this.form.month - 1, this.form.day);
+        for (let i = 1; i <= 45; i++) {
+          searchDate.setDate(searchDate.getDate() + searchDir);
+          days++;
+          const y = searchDate.getFullYear();
+          const m = searchDate.getMonth() + 1;
+          const d = searchDate.getDate();
+          try {
+            const lunar = LunarCalendar.solarToLunar(y, m, d);
+            if (lunar.term && this.jieTerms.includes(lunar.term)) break;
+          } catch(e) { /* skip */ }
+        }
+        startAge = Math.max(1, Math.min(10, Math.round(days / 3)));
+      } catch(e) { /* use fallback */ }
+
+      // 日元五行（用于解读）
+      const dayGan = bazi[2].value.charAt(0);
+      const dayWuXing = this.wuXing.tianGan[dayGan];
+
       for (let i = 0; i < 10; i++) {
-        const 大运Index = (月柱Index + i * direction + 60) % 60;
-        const 大运干支 = this.liuShiJiaZi[大运Index];
-        const startYear = 开始年龄 + i * 10;
-        const endYear = startYear + 9;
-        
-        // 生成大运解读
-        const 大运解读 = this.generate大运解读(大运干支, i);
-        
+        const idx = (月柱Index + (i + 1) * direction + 60) % 60;
+        const ganZhi = this.liuShiJiaZi[idx];
+        const start = startAge + i * 10;
+
         大运List.push({
-          startYear: startYear,
-          endYear: endYear,
-          ganZhi: 大运干支,
-          analysis: 大运解读
+          startYear: start,
+          endYear: start + 9,
+          ganZhi: ganZhi,
+          analysis: this.generate大运解读(ganZhi, dayWuXing)
         });
       }
-      
+
       return 大运List;
     },
     calculate流年(bazi) {
-      // 简化的流年计算逻辑
-      // 实际应用中需要更复杂的算法
-      
       const 流年List = [];
-      const 年柱 = bazi[0].value;
-      const 年柱Index = this.liuShiJiaZi.indexOf(年柱);
       const 当前年份 = new Date().getFullYear();
-      
-      // 生成前后5年的流年
+
       for (let i = -5; i <= 5; i++) {
         const 流年年份 = 当前年份 + i;
-        const 流年Index = (年柱Index + i + 60) % 60;
+        const 流年Index = (流年年份 - 4) % 60;
         const 流年干支 = this.liuShiJiaZi[流年Index];
-        
-        // 生成流年解读
+
         const 流年解读 = this.generate流年解读(流年干支, i);
-        
+
         流年List.push({
           year: 流年年份,
           ganZhi: 流年干支,
           analysis: 流年解读
         });
       }
-      
+
       return 流年List;
     },
-    generate大运解读(大运干支, index) {
-      // 简化的大运解读生成逻辑
-      const 解读列表 = [
-        '此大运期间，您的事业运势较为顺利，适合积极进取，可能会有不错的发展机会。',
-        '此大运期间，您的财运较好，可能会有意外之财，但需要注意理财，避免过度消费。',
-        '此大运期间，您的感情运势较为稳定，已婚者家庭和谐，未婚者可能会遇到合适的伴侣。',
-        '此大运期间，您的健康状况良好，但需要注意作息规律，保持适当的运动。',
-        '此大运期间，您的人际关系较好，容易得到他人的帮助和支持，有利于事业发展。',
-        '此大运期间，您可能会面临一些挑战和压力，但只要保持积极的心态，就能克服困难。',
-        '此大运期间，您的学习能力较强，适合进修或学习新技能，对未来发展会有帮助。',
-        '此大运期间，您的家庭运势较好，可能会有添丁之喜或家庭关系更加和谐。',
-        '此大运期间，您的事业可能会有变动，需要适应新的环境和挑战，但也会带来新的机会。',
-        '此大运期间，您的整体运势较为平稳，适合稳定发展，积累经验和财富。'
-      ];
-      
-      return 解读列表[index % 解读列表.length];
+    generate大运解读(大运干支, dayWuXing) {
+      const gan = 大运干支.charAt(0);
+      const zhi = 大运干支.charAt(1);
+      const ganWx = this.wuXing.tianGan[gan];
+      const zhiWx = this.wuXing.diZhi[zhi];
+      if (!dayWuXing || !ganWx) return '';
+
+      const sheng = { '木': '火', '火': '土', '土': '金', '金': '水', '水': '木' };
+      const ke = { '木': '土', '土': '水', '水': '火', '火': '金', '金': '木' };
+
+      let desc = '';
+      if (ganWx === dayWuXing) {
+        desc = '比肩劫财运，同辈助力增，人际拓展期，宜合作共事。';
+      } else if (sheng[dayWuXing] === ganWx) {
+        desc = '食伤泄秀运，才华显露期，利创作表达，注意把控尺度。';
+      } else if (sheng[ganWx] === dayWuXing) {
+        desc = '印绶生身运，贵人扶持期，利学业深造，宜稳扎稳打。';
+      } else if (ke[dayWuXing] === ganWx) {
+        desc = '财星入运，求财有道期，利投资经营，忌贪多嚼不烂。';
+      } else if (ke[ganWx] === dayWuXing) {
+        desc = '官杀临运，事业变动期，有升迁机遇，亦须防小人压力。';
+      }
+
+      if (zhiWx === dayWuXing) desc += '地支助身，根基稳固。';
+      else if (sheng[zhiWx] === dayWuXing) desc += '地支生身，暗中有助。';
+      else if (ke[zhiWx] === dayWuXing) desc += '地支克身，暗藏压力。';
+
+      return desc;
     },
     generate流年解读(流年干支, offset) {
-      // 简化的流年解读生成逻辑
-      if (offset === 0) {
-        return '今年是您的本命年，需要注意防范小人，保持低调，避免冲动行事。';
-      } else if (offset === 1) {
-        return '明年您的运势较为顺利，适合开展新的计划和项目，可能会有不错的收获。';
-      } else if (offset === -1) {
-        return '去年您的运势相对平稳，虽然可能遇到一些挑战，但都能顺利度过。';
-      } else if (offset > 0) {
-        return `${offset}年后，您的运势会逐渐好转，需要提前做好准备，抓住机会。`;
-      } else {
-        return `${Math.abs(offset)}年前，您的运势相对稳定，为现在的发展奠定了基础。`;
+      if (!this.result || !this.result.bazi) {
+        return offset === 0 ? '今年运势平稳。' : '';
       }
+      const dayGan = this.result.bazi[2].value.charAt(0);
+      const dayWuXing = this.wuXing.tianGan[dayGan];
+      const gan = 流年干支.charAt(0);
+      const zhi = 流年干支.charAt(1);
+      const ganWx = this.wuXing.tianGan[gan];
+      const zhiWx = this.wuXing.diZhi[zhi];
+      if (!dayWuXing || !ganWx) return '';
+
+      const sheng = { '木': '火', '火': '土', '土': '金', '金': '水', '水': '木' };
+      const ke = { '木': '土', '土': '水', '水': '火', '火': '金', '金': '木' };
+
+      let timeLabel = offset === 0 ? '今年' : offset === 1 ? '明年' : offset === -1 ? '去年' : offset > 0 ? `${offset}年后` : `${Math.abs(offset)}年前`;
+      let desc = '';
+
+      if (ganWx === dayWuXing) {
+        desc = '比劫年，同辈竞争与合作并存，利合伙但防争财。';
+      } else if (sheng[dayWuXing] === ganWx) {
+        desc = '食伤年，才思泉涌利表达创作，但忌口舌是非。';
+      } else if (sheng[ganWx] === dayWuXing) {
+        desc = '印星年，利学业考试晋升，长辈贵人相助。';
+      } else if (ke[dayWuXing] === ganWx) {
+        desc = '财星年，求财机遇增多，但须量力而行。';
+      } else if (ke[ganWx] === dayWuXing) {
+        desc = '官杀年，事业有变动压力，亦有晋升契机。';
+      }
+
+      return timeLabel + '，' + desc;
     },
     calculateCompatibility() {
+      const p1 = this.form2.party1
+      const td1 = new Date(p1.year, p1.month - 1, p1.day)
+      if (td1.getMonth() + 1 !== p1.month || td1.getDate() !== p1.day) {
+        alert('甲方日期不存在，请检查输入')
+        return
+      }
+      const p2 = this.form2.party2
+      const td2 = new Date(p2.year, p2.month - 1, p2.day)
+      if (td2.getMonth() + 1 !== p2.month || td2.getDate() !== p2.day) {
+        alert('乙方日期不存在，请检查输入')
+        return
+      }
       try {
         // 计算甲方八字
         const party1Bazi = this.calculateSingleBazi(this.form2.party1);
@@ -1428,14 +1501,18 @@ export default {
     calculateSingleBazi(person) {
       try {
         // 使用 lunar-calendar 库计算八字
-        const solar = new Solar(person.year, person.month, person.day, person.hour, person.minute);
-        const lunar = solar.getLunar();
-        
-        const yearGanZhi = lunar.getYearGanZhi();
-        const monthGanZhi = lunar.getMonthGanZhi();
-        const dayGanZhi = lunar.getDayGanZhi();
-        const hourGanZhi = lunar.getTimeGanZhi();
-        
+        const lunar = LunarCalendar.solarToLunar(person.year, person.month, person.day)
+
+        const yearGanZhi = lunar.GanZhiYear
+        const monthGanZhi = lunar.GanZhiMonth
+        const dayGanZhi = lunar.GanZhiDay
+
+        // 时柱：日干起时法
+        const shiChenIndex = Math.floor((person.hour + 1) % 24 / 2)
+        const dayGanIndex = this.tianGan.indexOf(dayGanZhi.charAt(0))
+        const shiGanStart = [0, 2, 4, 6, 8][dayGanIndex % 5]
+        const hourGanZhi = this.tianGan[(shiGanStart + shiChenIndex) % 10] + this.diZhi[shiChenIndex]
+
         return [
           { label: '年柱', value: yearGanZhi },
           { label: '月柱', value: monthGanZhi },
