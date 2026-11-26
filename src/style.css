@@ -702,6 +702,17 @@ body {
 .rb-pair.mode-pair .rb-tr { padding-left: calc(1em + 2px); }
 .rb-tr.rb-trnote { font-size: 0.82em; color: var(--ink-3); }
 .rb-fig { margin: 1.8em 0 2.2em; text-align: center; }
+.rb-htr { display: block; font-family: var(--sans); font-size: 0.6em; font-weight: 400; color: var(--ink-3); letter-spacing: 0.06em; margin-top: 0.3em; }
+.rb-verse-wrap { margin-bottom: 1.4em; }
+.rb-verse-wrap .rb-verse { margin-bottom: 0.6em; }
+.rb-verse-tr { padding-left: 1.2em; border-left: 2px solid var(--gold-dim); }
+.rb-note > p { grid-column: 2; }
+.rb-note > .rb-note-who { grid-column: 1; grid-row: 1; }
+.rb-note p.rb-orig { color: var(--ink-2); border-left: 2px solid var(--gold-dim, rgba(201, 169, 110, 0.4)); padding-left: 1em; }
+.rb-note p.rb-tr { font-family: var(--sans); font-size: 0.94em; color: var(--ink); margin: 0; }
+.rb-note p.rb-orig ~ p.rb-tr { padding-left: calc(1em + 2px); }
+.rb-note p.rb-tr.rb-trnote { font-size: 0.82em; color: var(--ink-3); }
+.rb-chart-tr { flex-basis: 100%; margin: 0.6em 0 0; }
 .book-tr { margin-left: 10px; padding: 1px 8px; border: 1px solid var(--gold-dim); color: var(--gold); font-size: 0.85em; letter-spacing: 0.08em; }
 .rb-fig.hidden { display: none; }
 .rb-fig-svg svg { max-width: 100%; height: auto; }
@@ -807,6 +818,7 @@ body {
   .reader-article { padding: 32px 20px 64px; }
   .rb-note { grid-template-columns: 1fr; gap: 0; }
   .rb-note-who { padding-top: 0; }
+  .rb-note > p, .rb-note > .rb-note-who { grid-column: 1; grid-row: auto; }
   .reader-pager { grid-template-columns: 1fr; }
   .pager-btn.next { text-align: left; }
 }

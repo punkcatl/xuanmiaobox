@@ -158,6 +158,20 @@ export function parseQiongtong(text) {
 const normText = s => s.replace(/[\s　]/g, '');
 
 /** 解析一章译稿为阅读器块 */
+// 引用块：普通为正文段落；【原文】为诗句，【原注】【任氏曰】为注文，【命例】为四柱（｜ 大运：… ｜ 标注）
+// ## 小标题；图片 + 斜体段落为补图；其余段落为上一块的白话（小标题、命例的白话可省略）
+const TAGGED = /^【(原文|原注|任氏曰|命例)】/;
+function parseChartLine(s, label) {
+  const parts = s.split('｜').map(x => x.trim()).filter(Boolean);
+  const chart = { t: 'chart', pillars: parts[0].split(/\s+/) };
+  for (const part of parts.slice(1)) {
+    const m = part.match(/^大运[:：]\s*(.*)$/);
+    if (m) chart.dayun = m[1].split(/\s+/).filter(Boolean);
+    else chart.label = part;
+  }
+  if (chart.pillars.length < 1) throw new Error(`${label}：命例格式不对：${s}`);
+  return chart;
+}
 export function parseTranslation(md, figDir, label = '') {
   const blocks = [];
   let cur = null;
@@ -165,8 +179,15 @@ export function parseTranslation(md, figDir, label = '') {
   for (const raw of md.replace(/\r/g, '').split(/\n\s*\n/)) {
     const c = raw.trim();
     if (!c || c.startsWith('<!--') || /^#\s/.test(c)) continue;
+    if (/^#{2,3}\s/.test(c)) { cur = { t: 'h', text: c.replace(/^#+\s*/, ''), tr: [] }; blocks.push(cur); fig = null; continue; }
     if (c.startsWith('>')) {
-      cur = { t: 'p', text: c.split('\n').map(l => l.replace(/^>\s?/, '').trim()).join(''), tr: [] };
+      let text = c.split('\n').map(l => l.replace(/^>\s?/, '').trim()).join('');
+      const tag = (text.match(TAGGED) || [])[1];
+      if (tag) text = text.replace(TAGGED, '').trim();
+      if (tag === '命例') cur = { ...parseChartLine(text, label), tr: [] };
+      else if (tag === '原文') cur = { t: 'verse', text, tr: [] };
+      else if (tag) cur = { t: 'note', who: tag, text, tr: [] };
+      else cur = { t: 'p', text, tr: [] };
       blocks.push(cur);
       fig = null;
       continue;
@@ -187,13 +208,21 @@ export function parseTranslation(md, figDir, label = '') {
     cur.tr.push(c.replace(/\n/g, ''));
   }
   for (const b of blocks) {
-    if (b.t === 'p') { if (!b.tr.length) throw new Error(`${label}：原文“${b.text.slice(0, 12)}…”缺少译文`); b.tr = b.tr.join('\n'); }
-    if (b.t === 'fig' && !b.caption) throw new Error(`${label}：补图 ${b.alt} 缺少说明`);
+    if (b.t === 'fig') { if (!b.caption) throw new Error(`${label}：补图 ${b.alt} 缺少说明`); continue; }
+    if (!b.tr.length) {
+      if (b.t === 'p' || b.t === 'verse' || b.t === 'note') throw new Error(`${label}：原文“${b.text.slice(0, 12)}…”缺少译文`);
+      delete b.tr; // 小标题、命例可以没有白话
+    } else b.tr = b.tr.join('\n');
   }
   return blocks;
 }
 
-/** 把 content/translations/<书>/NN-*.md 合并进对应章节；原文须与底本逐字一致（只允许拆段） */
+// 校验用：正文段落可拆段（只比较拼接后的文字），小标题 / 诗句 / 注文须逐块一致，命例须完全一致
+const textOf = list => normText(list.filter(b => b.t !== 'chart' && b.t !== 'fig').map(b => b.text || '').join(''));
+const sigOf = list => list.filter(b => b.t === 'h' || b.t === 'verse' || b.t === 'note').map(b => `${b.t}:${b.who || ''}:${normText(b.text)}`);
+const chartsOf = list => list.filter(b => b.t === 'chart').map(b => JSON.stringify([b.pillars, b.dayun || null, b.label || null]));
+
+/** 把 content/translations/<书>/NN-*.md 合并进对应章节；原文须与底本一致（正文只允许拆段） */
 export function applyTranslations(book) {
   const dir = join(root, 'content/translations', book.id);
   if (!existsSync(dir)) return book;
@@ -201,13 +230,19 @@ export function applyTranslations(book) {
     const idx = Number(f.slice(0, 2));
     const ch = book.chapters[idx];
     if (!ch) throw new Error(`${book.id}/${f}：没有第 ${idx} 章`);
-    const blocks = parseTranslation(readFileSync(join(dir, f), 'utf8'), dir, `${book.id}/${f}`);
-    const orig = normText(ch.blocks.map(b => b.text || '').join(''));
-    const mine = normText(blocks.filter(b => b.t === 'p').map(b => b.text).join(''));
+    const where = `${book.id}/${f}`;
+    const blocks = parseTranslation(readFileSync(join(dir, f), 'utf8'), dir, where);
+    const orig = textOf(ch.blocks), mine = textOf(blocks);
     if (orig !== mine) {
       const at = [...orig].findIndex((c, i) => c !== mine[i]);
-      throw new Error(`${book.id}/${f}：原文与底本不一致，自第 ${at} 字起：底本“${orig.slice(at, at + 12)}” / 译稿“${mine.slice(at, at + 12)}”`);
+      throw new Error(`${where}：原文与底本不一致，自第 ${at} 字起：底本“${orig.slice(at, at + 12)}” / 译稿“${mine.slice(at, at + 12)}”`);
     }
+    const [s1, s2] = [sigOf(ch.blocks), sigOf(blocks)];
+    const k = s1.findIndex((x, i) => x !== s2[i]);
+    if (k >= 0 || s1.length !== s2.length) throw new Error(`${where}：小标题 / 诗句 / 注文与底本不一致（第 ${k < 0 ? s1.length : k + 1} 处）：底本 ${s1[k] || '无'} / 译稿 ${s2[k] || '无'}`);
+    const [c1, c2] = [chartsOf(ch.blocks), chartsOf(blocks)];
+    const m = c1.findIndex((x, i) => x !== c2[i]);
+    if (m >= 0 || c1.length !== c2.length) throw new Error(`${where}：命例与底本不一致（第 ${m < 0 ? c1.length : m + 1} 个）：底本 ${c1[m] || '无'} / 译稿 ${c2[m] || '无'}`);
     ch.blocks = blocks;
     ch.translated = true;
   }
@@ -235,8 +270,8 @@ function main() {
   mkdirSync(out, { recursive: true });
   const books = [
     applyTranslations(parseZiping(src('ziping.txt'))),
-    parseDitiansui(src('ditiansui.txt')),
-    parseQiongtong(src('qiongtong.txt'))
+    applyTranslations(parseDitiansui(src('ditiansui.txt'))),
+    applyTranslations(parseQiongtong(src('qiongtong.txt')))
   ];
   // 先全部校验，再写文件，避免留下半成品
   for (const b of books) if (!b.chapters.length) throw new Error(`${b.id}：解析结果为空`);

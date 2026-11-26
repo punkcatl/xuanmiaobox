@@ -79,8 +79,11 @@
             <p v-if="chapter.subtitle" class="reader-sub">{{ chapter.subtitle }}</p>
 
             <template v-for="(b, i) in chapter.blocks" :key="i">
-              <h3 v-if="b.t === 'h'" :id="'rb-' + i" class="rb-h">{{ b.text }}</h3>
-              <!-- 白话对照：对照模式原文在上、白话在下；白话模式只显示白话；原文模式与普通段落相同 -->
+              <!-- 小标题：白话模式显示译名（如有），对照模式原名下附译名 -->
+              <h3 v-if="b.t === 'h'" :id="'rb-' + i" class="rb-h">
+                {{ b.tr && trMode === 'tr' ? b.tr : b.text }}<small v-if="b.tr && trMode === 'pair'" class="rb-htr">{{ b.tr }}</small>
+              </h3>
+              <!-- 白话对照：对照模式原文在上、白话在下；白话模式只显示白话；原文模式与无译文时相同 -->
               <div v-else-if="b.t === 'p' && b.tr && trMode !== 'orig'" :id="'rb-' + i" class="rb-pair" :class="'mode-' + trMode">
                 <p v-if="trMode === 'pair'" class="rb-p rb-orig"><TermText :parts="marked[i]" /></p>
                 <p v-for="(t, j) in markedTr[i]" :key="j" class="rb-tr" :class="{ 'rb-trnote': t.note }"><TermText :parts="t.parts" /></p>
@@ -91,10 +94,18 @@
                 <div class="rb-fig-svg" v-html="b.svg"></div>
                 <figcaption>{{ b.caption }}</figcaption>
               </figure>
-              <blockquote v-else-if="b.t === 'verse'" :id="'rb-' + i" class="rb-verse">{{ b.text }}</blockquote>
+              <div v-else-if="b.t === 'verse'" :id="'rb-' + i" class="rb-verse-wrap">
+                <blockquote v-if="!(b.tr && trMode === 'tr')" class="rb-verse">{{ b.text }}</blockquote>
+                <template v-if="b.tr && trMode !== 'orig'">
+                  <p v-for="(t, j) in markedTr[i]" :key="j" class="rb-tr rb-verse-tr" :class="{ 'rb-trnote': t.note }"><TermText :parts="t.parts" /></p>
+                </template>
+              </div>
               <div v-else-if="b.t === 'note'" :id="'rb-' + i" class="rb-note" :class="{ ren: b.who === '任氏曰' }">
                 <span class="rb-note-who">{{ b.who }}</span>
-                <p><TermText :parts="marked[i]" /></p>
+                <p v-if="!(b.tr && trMode === 'tr')" :class="{ 'rb-orig': b.tr && trMode === 'pair' }"><TermText :parts="marked[i]" /></p>
+                <template v-if="b.tr && trMode !== 'orig'">
+                  <p v-for="(t, j) in markedTr[i]" :key="j" class="rb-tr" :class="{ 'rb-trnote': t.note }"><TermText :parts="t.parts" /></p>
+                </template>
               </div>
               <div v-else-if="b.t === 'chart'" :id="'rb-' + i" class="rb-chart">
                 <div class="rb-chart-pillars">
@@ -109,6 +120,9 @@
                   <span v-for="(y, j) in b.dayun" :key="j">{{ y }}</span>
                 </div>
                 <span v-if="b.label" class="rb-chart-label">{{ b.label }}</span>
+                <template v-if="b.tr && trMode !== 'orig'">
+                  <p v-for="(t, j) in markedTr[i]" :key="j" class="rb-tr rb-chart-tr" :class="{ 'rb-trnote': t.note }"><TermText :parts="t.parts" /></p>
+                </template>
               </div>
               <ul v-else-if="b.t === 'list'" class="rb-list">
                 <li v-for="(it, j) in b.items" :key="j"><TermText :parts="marked[i][j]" /></li>
@@ -191,7 +205,7 @@ export default {
     markedTr() {
       if (!this.chapter || !this.chapter.translated) return [];
       const seen = new Set();
-      return this.chapter.blocks.map(b => (b.t === 'p' && b.tr
+      return this.chapter.blocks.map(b => (b.tr && b.t !== 'h'
         ? b.tr.split('\n').map(t => ({ note: t.startsWith('（译注'), parts: splitTerms(t, { once: true, seen }) }))
         : null));
     },

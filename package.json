@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "build:books": "node scripts/build-books.mjs",
-    "ai-server": "node server/ai-server.mjs"
+    "ai-server": "node server/ai-server.mjs",
+    "pdf:book": "node scripts/book-pdf.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.14.0",

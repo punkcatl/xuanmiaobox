@@ -563,7 +563,201 @@ figs['48-zhuanwang'] = () => {
   return svg(W, H, b, '五种一方专旺格：曲直仁寿、炎上、稼穑、从革、润下');
 };
 
-const out = join(root, 'content/translations/ziping/figs');
-mkdirSync(out, { recursive: true });
-for (const [name, make] of Object.entries(figs)) { figId = `xf-${name}`; writeFileSync(join(out, `${name}.svg`), make()); }
-console.log('生成', Object.keys(figs).length, '张图 →', out);
+// ======== 穷通宝鉴 ========
+const qfigs = {};
+const MONTHS = [['正月', '寅'], ['二月', '卯'], ['三月', '辰'], ['四月', '巳'], ['五月', '午'], ['六月', '未'], ['七月', '申'], ['八月', '酉'], ['九月', '戌'], ['十月', '亥'], ['十一月', '子'], ['十二月', '丑']];
+/**
+ * 十二月调候用神表：rows = [{ gan, months: ['丙癸', '庚', …12 项], notes? }]
+ * 每月所列天干按原文先后（先者为主）
+ */
+function tiaohouFig(rows, title, foot) {
+  const maxLen = Math.max(...rows.flatMap(r => r.months.map(m => [...m].length)));
+  const colW = 58, left = 70, top = 70, rowH = Math.max(66, 30 + maxLen * 17), W = left + 12 * colW + 20, H = top + rows.length * rowH + 40;
+  let b = '';
+  MONTHS.forEach(([m, z], j) => {
+    const x = left + j * colW + colW / 2;
+    b += text(x, 32, m, 'xf-s', 11) + `<text x="${x}" y="52" font-size="14" text-anchor="middle" font-family="Noto Serif SC,serif" style="fill:${wx(ZHI_WX[z])}">${z}</text>`;
+  });
+  b += line(20, 60, W - 20, 60, 'xf-box', false);
+  rows.forEach((r, i) => {
+    const y0 = top + i * rowH;
+    if (i % 2 === 0) b += `<rect x="20" y="${y0 - 6}" width="${W - 40}" height="${rowH - 4}" class="xf-hl"/>`;
+    b += `<text x="40" y="${y0 + 30}" font-size="22" text-anchor="middle" font-family="Noto Serif SC,serif" style="fill:${wx(GAN_WX[r.gan])}">${r.gan}</text>`;
+    r.months.forEach((gs, j) => {
+      const x = left + j * colW + colW / 2;
+      [...gs].forEach((g, k) => {
+        const big = k === 0;
+        b += `<text x="${x}" y="${y0 + 18 + k * 17}" font-size="${big ? 16 : 13}" text-anchor="middle" font-family="Noto Serif SC,serif"${big ? ' font-weight="600"' : ''} style="fill:${wx(GAN_WX[g])}">${g}</text>`;
+      });
+    });
+  });
+  b += text(W / 2, H - 14, foot, 'xf-s', 11);
+  return svg(W, H, b, title);
+}
+const FOOT = '据本章原文整理；每格自上而下为取用先后，首字为主';
+qfigs['01-jia-tiaohou'] = () => tiaohouFig([{ gan: '甲', months: ['丙癸', '庚戊丁', '庚壬', '癸丁庚', '癸丁庚', '丁庚', '丁庚', '丁丙庚', '丁壬癸', '庚丁丙', '丁庚丙', '庚丁'] }],
+  '甲木十二月调候用神', FOOT);
+qfigs['01-yi-tiaohou'] = () => tiaohouFig([{ gan: '乙', months: ['丙癸', '丙癸', '癸丙', '癸丙', '癸丙', '丙癸', '丙癸己', '癸丙', '癸辛', '丙戊', '丙', '丙'] }],
+  '乙木十二月调候用神', FOOT + '；十二月据底本第二处“十一月乙木”一节（疑即十二月）');
+
+qfigs['02-bing-tiaohou'] = () => tiaohouFig([{ gan: '丙', months: ['壬庚', '壬己', '壬甲', '壬庚', '壬庚', '壬庚', '壬戊', '壬癸', '甲壬', '甲戊庚壬', '壬戊', '壬甲'] }],
+  '丙火十二月调候用神', FOOT + '；十月原文：木旺宜庚，水旺宜戊，火旺用壬');
+qfigs['03-ding-tiaohou'] = () => tiaohouFig([{ gan: '丁', months: ['庚甲', '庚甲', '甲庚', '甲庚', '壬庚癸', '甲壬', '甲庚丙', '甲庚丙', '甲庚', '甲庚', '甲庚', '甲庚'] }],
+  '丁火十二月调候用神', FOOT + '；八九月、冬三月原文合论');
+qfigs['04-siku'] = () => {
+  const W = 640, H = 290;
+  const items = [['辰', '春末', '伏水', '水', '癸'], ['未', '夏末', '匿木', '木', '乙'], ['戌', '秋末', '藏火', '火', '丁'], ['丑', '冬末', '隐金', '金', '辛']];
+  let b = '';
+  b += `<rect x="30" y="48" width="280" height="168" class="xf-hl"/>`;
+  b += text(170, 36, '辰未：滋养万物，春夏为功（聚之为贵）', 'xf-g', 13);
+  b += text(470, 36, '戌丑：秋火冬金，肃杀万物（聚之不贵）', 'xf-s', 13);
+  items.forEach(([z, season, hide, w, g], i) => {
+    const x = 100 + i * 147;
+    b += `<rect x="${x - 56}" y="60" width="112" height="144" rx="6" class="xf-box"/>`;
+    b += text(x, 80, season, 'xf-s', 12);
+    b += `<text x="${x}" y="124" font-size="34" text-anchor="middle" font-family="Noto Serif SC,serif" font-weight="600" style="fill:${wx('土')}">${z}</text>`;
+    b += text(x, 154, hide, 'xf-t', 15);
+    b += `<text x="${x}" y="186" font-size="16" text-anchor="middle" font-family="Noto Serif SC,serif" style="fill:${wx(w)}">${g}${w}</text>`;
+  });
+  b += text(W / 2, 246, '四季之土各藏一气：辰藏癸水，未藏乙木，戌藏丁火，丑藏辛金', 'xf-s', 12);
+  b += text(W / 2, 270, '据本章“辰有伏水，未有匿木……戌有藏火，丑有隐金”整理', 'xf-s', 11);
+  return svg(W, H, b, '辰戌丑未四库土所藏');
+};
+qfigs['05-wu-tiaohou'] = () => tiaohouFig([{ gan: '戊', months: ['丙甲癸', '丙甲癸', '甲丙癸', '甲丙癸', '壬甲丙', '癸丙甲', '丙癸甲', '丙癸', '甲癸丙', '甲丙', '丙甲', '丙甲'] }],
+  '戊土十二月调候用神', FOOT + '；正二月原文“先丙後，癸又次之”疑脱“甲”字');
+qfigs['06-ji-tiaohou'] = () => tiaohouFig([{ gan: '己', months: ['丙庚甲', '甲癸丙', '丙癸甲', '癸丙', '癸丙', '癸丙', '癸丙', '癸丙', '甲癸丙', '丙甲戊', '丙甲', '丙甲'] }],
+  '己土十二月调候用神', FOOT + '；夏、秋、冬各三月原文合论，十月壬旺取戊');
+qfigs['07-geng-tiaohou'] = () => tiaohouFig([{ gan: '庚', months: ['丙甲丁', '丁甲庚', '甲丁', '壬戊丙', '壬癸', '丁甲', '丁甲', '丁甲丙', '甲壬', '丁丙', '丁甲丙', '丙丁甲'] }],
+  '庚金十二月调候用神', FOOT);
+qfigs['08-xin-tiaohou'] = () => tiaohouFig([{ gan: '辛', months: ['己壬庚', '壬甲', '壬甲', '壬甲癸', '壬己癸', '壬庚甲', '壬甲戊', '壬甲', '壬甲', '壬丙', '丙壬戊', '丙壬戊己'] }],
+  '辛金十二月调候用神', FOOT);
+qfigs['10-ren-tiaohou'] = () => tiaohouFig([{ gan: '壬', months: ['庚丙戊', '戊辛庚', '甲庚', '壬辛庚', '癸庚辛', '辛甲癸', '戊丁', '甲庚', '甲丙', '戊丙庚', '戊丙', '丙丁甲'] }],
+  '壬水十二月调候用神', FOOT);
+qfigs['11-gui-tiaohou'] = () => tiaohouFig([{ gan: '癸', months: ['辛丙', '庚辛', '丙辛甲', '辛庚壬', '庚辛壬', '庚辛', '丁甲', '辛丙', '辛甲', '庚辛', '丙辛', '丙'] }],
+  '癸水十二月调候用神', FOOT + '；四月癸水，原文“总之专用辛金”');
+qfigs['00-tiaohou-all'] = () => tiaohouFig([
+  { gan: '甲', months: ['丙癸', '庚戊丁', '庚壬', '癸丁庚', '癸丁庚', '丁庚', '丁庚', '丁丙庚', '丁壬癸', '庚丁丙', '丁庚丙', '庚丁'] },
+  { gan: '乙', months: ['丙癸', '丙癸', '癸丙', '癸丙', '癸丙', '丙癸', '丙癸己', '癸丙', '癸辛', '丙戊', '丙', '丙'] },
+  { gan: '丙', months: ['壬庚', '壬己', '壬甲', '壬庚', '壬庚', '壬庚', '壬戊', '壬癸', '甲壬', '甲戊庚壬', '壬戊', '壬甲'] },
+  { gan: '丁', months: ['庚甲', '庚甲', '甲庚', '甲庚', '壬庚癸', '甲壬', '甲庚丙', '甲庚丙', '甲庚', '甲庚', '甲庚', '甲庚'] },
+  { gan: '戊', months: ['丙甲癸', '丙甲癸', '甲丙癸', '甲丙癸', '壬甲丙', '癸丙甲', '丙癸甲', '丙癸', '甲癸丙', '甲丙', '丙甲', '丙甲'] },
+  { gan: '己', months: ['丙庚甲', '甲癸丙', '丙癸甲', '癸丙', '癸丙', '癸丙', '癸丙', '癸丙', '甲癸丙', '丙甲戊', '丙甲', '丙甲'] },
+  { gan: '庚', months: ['丙甲丁', '丁甲庚', '甲丁', '壬戊丙', '壬癸', '丁甲', '丁甲', '丁甲丙', '甲壬', '丁丙', '丁甲丙', '丙丁甲'] },
+  { gan: '辛', months: ['己壬庚', '壬甲', '壬甲', '壬甲癸', '壬己癸', '壬庚甲', '壬甲戊', '壬甲', '壬甲', '壬丙', '丙壬戊', '丙壬戊己'] },
+  { gan: '壬', months: ['庚丙戊', '戊辛庚', '甲庚', '壬辛庚', '癸庚辛', '辛甲癸', '戊丁', '甲庚', '甲丙', '戊丙庚', '戊丙', '丙丁甲'] },
+  { gan: '癸', months: ['辛丙', '庚辛', '丙辛甲', '辛庚壬', '庚辛壬', '庚辛', '丁甲', '辛丙', '辛甲', '庚辛', '丙辛', '丙'] }
+], '十干十二月调候用神总表', '据第一至十一章原文整理；每格自上而下为取用先后，首字为主；详见各章分图');
+// ---------- 滴天髓补图 ----------
+const dfigs = {};
+const ZHI12 = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+const gz = (s, x, y, size = 15, weight = '') => [...s].map((c, k) => {
+  const w = GAN_WX[c] || ZHI_WX[c];
+  return `<text x="${x + k * size}" y="${y}" font-size="${size}" text-anchor="middle" font-family="Noto Serif SC,serif"${weight ? ` font-weight="${weight}"` : ''} style="fill:${w ? wx(w) : 'var(--ink,#2b2620)'}">${c}</text>`;
+}).join('');
+// 图：四方与三合
+dfigs['10-fangju'] = () => {
+  const W = 740, H = 430, R = 112, cy = 205;
+  const pos = (cx, i) => { const a = (i * 30 - 90) * Math.PI / 180; return [cx + R * Math.cos(a), cy + R * Math.sin(a)]; };
+  const ring = (cx) => ZHI12.map((z, i) => { const [x, y] = pos(cx, i); return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="17" fill="${wx(ZHI_WX[z])}" fill-opacity=".12" stroke="${wx(ZHI_WX[z])}" stroke-width="1.2"/><text x="${x.toFixed(1)}" y="${(y + 6).toFixed(1)}" font-size="17" text-anchor="middle" font-family="Noto Serif SC,serif" style="fill:${wx(ZHI_WX[z])}">${z}</text>`; }).join('');
+  let b = '';
+  // 左：四方（三个相邻地支，画弧带）
+  const L = 205;
+  [[2, 4, '木', '东方'], [5, 7, '火', '南方'], [8, 10, '金', '西方'], [11, 13, '水', '北方']].forEach(([s, e, w, name]) => {
+    const r2 = R + 36, a1 = ((s - 0.45) * 30 - 90) * Math.PI / 180, a2 = ((e + 0.45) * 30 - 90) * Math.PI / 180;
+    const p1 = [L + r2 * Math.cos(a1), cy + r2 * Math.sin(a1)], p2 = [L + r2 * Math.cos(a2), cy + r2 * Math.sin(a2)];
+    b += `<path d="M${p1[0].toFixed(1)} ${p1[1].toFixed(1)} A${r2} ${r2} 0 0 1 ${p2[0].toFixed(1)} ${p2[1].toFixed(1)}" fill="none" stroke="${wx(w)}" stroke-width="10" stroke-opacity=".35" stroke-linecap="round"/>`;
+    const am = (((s + e) / 2) * 30 - 90) * Math.PI / 180, r3 = R + 58;
+    b += `<text x="${(L + r3 * Math.cos(am)).toFixed(1)}" y="${(cy + r3 * Math.sin(am) + 5).toFixed(1)}" font-size="13" text-anchor="middle" font-family="Noto Sans SC,sans-serif" style="fill:${wx(w)}">${name}${w}</text>`;
+  });
+  b += ring(L) + text(L, cy + 5, '四方', 'xf-t', 18);
+  // 右：三合（三角）
+  const Rc = 560;
+  [[8, 0, 4, '水'], [11, 3, 7, '木'], [2, 6, 10, '火'], [5, 9, 1, '金']].forEach(([a, c, d, w]) => {
+    const pts = [a, c, d].map(i => pos(Rc, i).map(v => v.toFixed(1)).join(',')).join(' ');
+    b += `<polygon points="${pts}" fill="${wx(w)}" fill-opacity=".05" stroke="${wx(w)}" stroke-width="1.6" stroke-opacity=".75"/>`;
+  });
+  b += ring(Rc) + text(Rc, cy + 5, '三合', 'xf-t', 18);
+  b += text(L, 416, '寅卯辰·巳午未·申酉戌·亥子丑：三字全为“成方”', 'xf-s', 12);
+  b += text(Rc, 416, '申子辰水·亥卯未木·寅午戌火·巳酉丑金：生旺墓一气', 'xf-s', 12);
+  return svg(W, H, b, '地支四方与三合局');
+};
+// 图：天干五合与逢五化（化象）
+dfigs['46-hehua'] = () => {
+  const rows = [['甲', '己', '一', '六', '甲子', '戊辰', '土'], ['乙', '庚', '二', '七', '丙子', '庚辰', '金'], ['丙', '辛', '三', '八', '戊子', '壬辰', '水'], ['丁', '壬', '四', '九', '庚子', '甲辰', '木'], ['戊', '癸', '五', '十', '壬子', '丙辰', '火']];
+  const W = 640, top = 78, rh = 46, H = top + rows.length * rh + 46;
+  const cols = [70, 200, 330, 450, 570];
+  let b = '';
+  ['五合', '洛书数（得五而合）', '起子（五鼠遁）', '数到第五位（辰）', '化气'].forEach((h, i) => { b += text(cols[i], 46, h, 'xf-s', 12); });
+  b += line(24, 58, W - 24, 58, 'xf-box', false);
+  rows.forEach(([a, c, na, nc, start, fifth, w], i) => {
+    const y = top + i * rh;
+    if (i % 2 === 0) b += `<rect x="24" y="${y - 6}" width="${W - 48}" height="${rh - 4}" class="xf-hl"/>`;
+    b += gz(a + c, cols[0] - 9, y + 22, 20, '600');
+    b += text(cols[1], y + 22, `${a}${na} ＋ 五 ＝ ${c}${nc}`, 'xf-t', 14);
+    b += gz(start, cols[2] - 8, y + 22, 16);
+    b += gz(fifth, cols[3] - 8, y + 22, 16, '600');
+    b += `<text x="${cols[4]}" y="${y + 23}" font-size="20" text-anchor="middle" font-family="Noto Serif SC,serif" font-weight="600" style="fill:${wx(w)}">${w}</text>`;
+  });
+  b += text(W / 2, H - 14, '据《化象》章任注整理：辰为五土，数到辰位，化神元神透出（如甲己年起甲子，至戊辰而化土）', 'xf-s', 11);
+  return svg(W, H, b, '天干五合与逢五而化');
+};
+// 图：五行颠倒（衰旺）
+dfigs['16-diandao'] = () => {
+  const data = { 木: [['金', '火'], ['火', '水'], ['水', '金'], ['土', '火']], 火: [['水', '土'], ['土', '木'], ['木', '水'], ['金', '土']], 土: [['木', '金'], ['金', '火'], ['火', '木'], ['水', '金']], 金: [['火', '水'], ['水', '土'], ['土', '火'], ['木', '水']], 水: [['土', '木'], ['木', '金'], ['金', '土'], ['火', '木']] };
+  const heads = [['太旺', '喜'], ['旺极', '喜'], ['太衰', '宜'], ['衰极', '宜']];
+  const W = 640, top = 80, rh = 48, H = top + 5 * rh + 40, cols = [60, 178, 302, 426, 550];
+  let b = text(cols[0], 46, '日主', 'xf-s', 12);
+  heads.forEach(([h], i) => { b += text(cols[i + 1], 46, `${h}者似…`, 'xf-s', 12); });
+  b += line(24, 58, W - 24, 58, 'xf-box', false);
+  Object.entries(data).forEach(([w, cells], i) => {
+    const y = top + i * rh;
+    if (i % 2 === 0) b += `<rect x="24" y="${y - 6}" width="${W - 48}" height="${rh - 4}" class="xf-hl"/>`;
+    b += node(cols[0], y + 15, w, 16, 16);
+    cells.forEach(([like, want], j) => {
+      const x = cols[j + 1];
+      b += `<text x="${x - 30}" y="${y + 21}" font-size="13" class="xf-s" text-anchor="middle">似</text>`;
+      b += `<text x="${x - 12}" y="${y + 22}" font-size="18" text-anchor="middle" font-family="Noto Serif SC,serif" font-weight="600" style="fill:${wx(like)}">${like}</text>`;
+      b += `<text x="${x + 14}" y="${y + 21}" font-size="13" class="xf-s" text-anchor="middle">${heads[j][1]}</text>`;
+      b += `<text x="${x + 32}" y="${y + 22}" font-size="18" text-anchor="middle" font-family="Noto Serif SC,serif" style="fill:${wx(want)}">${want}</text>`;
+    });
+  });
+  b += text(W / 2, H - 12, '据《衰旺》章任注整理；土“旺极”原文作“似水”，据命例当作“似金”', 'xf-s', 11);
+  return svg(W, H, b, '五行颠倒：太旺、旺极、太衰、衰极');
+};
+// 图：大运的上等、次等、盖头、截脚（岁运）
+dfigs['61-gaitou'] = () => {
+  const data = [
+    ['木', ['甲寅', '乙卯'], ['甲辰', '乙亥', '壬寅', '癸卯'], ['庚寅', '辛卯'], ['甲申', '乙酉', '乙丑', '乙巳']],
+    ['火', ['丙午', '丁未'], ['丙寅', '丁卯', '丙戌', '丁巳'], ['壬午', '癸巳'], ['丙子', '丁丑', '丙申', '丁酉', '丁亥']],
+    ['土', ['戊午', '己未', '戊戌', '己巳'], ['戊辰', '己丑'], ['甲戌', '甲辰', '乙丑', '乙未'], ['戊寅', '己卯', '戊子', '己酉', '戊申']],
+    ['金', ['庚申', '辛酉'], ['戊申', '己酉', '庚辰', '辛巳'], ['丙申', '丁酉'], ['庚午', '辛亥', '庚寅', '辛卯', '庚子']],
+    ['水', ['壬子', '癸亥'], ['壬申', '癸酉', '辛亥', '庚子'], ['戊子', '己亥'], ['壬寅', '癸卯', '壬午', '癸未', '壬辰', '癸巳']],
+  ];
+  const W = 760, top = 80, rh = 58, H = top + 5 * rh + 40, cols = [56, 110, 250, 420, 560];
+  let b = text(cols[0], 46, '喜行', 'xf-s', 12);
+  [['上等', '最宜'], ['次等', '其次'], ['盖头', '干克支，吉凶减半'], ['截脚', '支不载干，十年皆否']].forEach(([h, s], i) => {
+    b += text(cols[i + 1] + 50 + (i === 3 ? 30 : 0), 40, h, 'xf-t', 14) + text(cols[i + 1] + 50 + (i === 3 ? 30 : 0), 56, s, 'xf-s', 11);
+  });
+  b += line(24, 64, W - 24, 64, 'xf-box', false);
+  data.forEach(([w, ...groups], i) => {
+    const y = top + i * rh;
+    if (i % 2 === 0) b += `<rect x="24" y="${y - 6}" width="${W - 48}" height="${rh - 4}" class="xf-hl"/>`;
+    b += node(cols[0], y + 20, w, 16, 16);
+    groups.forEach((g, j) => {
+      g.forEach((p, k) => {
+        const perRow = 3, x = cols[j + 1] + 18 + (k % perRow) * 44, yy = y + 16 + Math.floor(k / perRow) * 22;
+        b += gz(p, x - 7, yy, 15);
+      });
+    });
+  });
+  b += text(W / 2, H - 12, '据《岁运》章任注整理：一运看十年，干支不可截开看', 'xf-s', 11);
+  return svg(W, H, b, '大运干支的上等、次等、盖头与截脚');
+};
+const BOOK_FIGS = { ziping: figs, qiongtong: qfigs, ditiansui: dfigs };
+let total = 0;
+for (const [book, set] of Object.entries(BOOK_FIGS)) {
+  const out = join(root, `content/translations/${book}/figs`);
+  mkdirSync(out, { recursive: true });
+  for (const [name, make] of Object.entries(set)) { figId = `xf-${book === 'ziping' ? '' : book + '-'}${name}`; writeFileSync(join(out, `${name}.svg`), make()); total++; }
+}
+console.log('生成', total, '张图');
