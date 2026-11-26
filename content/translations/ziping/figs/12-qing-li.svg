@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 300" width="600" height="300" role="img" aria-label="格局高低在于有情无情、有力无力">
+<title>格局高低在于有情无情、有力无力</title>
+<style>
+.xf-t{font-family:"Noto Serif SC","Songti SC",serif;fill:var(--ink,#2b2620)}
+.xf-s{font-family:"Noto Sans SC","PingFang SC",sans-serif;fill:var(--ink-3,#7a7064)}
+.xf-g{fill:var(--gold,#a07d3c)}
+.xf-ln{stroke:var(--ink-3,#9a8f80);fill:none;stroke-width:1.2}
+.xf-dash{stroke:var(--ink-3,#9a8f80);fill:none;stroke-width:1;stroke-dasharray:4 4}
+.xf-box{fill:none;stroke:var(--ink-4,#c9bfae);stroke-width:1}
+.xf-hl{fill:var(--gold,#a07d3c);fill-opacity:.12}
+</style>
+<defs><marker id="xf-12-qing-li-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 1L9 5L0 9z" fill="var(--ink-3,#9a8f80)"/></marker></defs>
+<rect x="130" y="40" width="194" height="94" rx="4" fill="var(--gold,#a07d3c)" fill-opacity=".14" stroke="var(--gold,#a07d3c)"/><text x="227" y="82" class="xf-g" font-size="15" text-anchor="middle" >有情而有力</text><text x="227" y="106" class="xf-s" font-size="12" text-anchor="middle" >格之最高</text><rect x="330" y="40" width="194" height="94" rx="4" class="xf-box"/><text x="427" y="82" class="xf-t" font-size="15" text-anchor="middle" >有力而少情</text><text x="427" y="106" class="xf-s" font-size="12" text-anchor="middle" >高而次</text><rect x="130" y="140" width="194" height="94" rx="4" class="xf-box"/><text x="227" y="182" class="xf-t" font-size="15" text-anchor="middle" >有情而少力</text><text x="227" y="206" class="xf-s" font-size="12" text-anchor="middle" >高而次</text><rect x="330" y="140" width="194" height="94" rx="4" class="xf-box"/><text x="427" y="182" class="xf-t" font-size="15" text-anchor="middle" >无情、无力</text><text x="427" y="206" class="xf-s" font-size="12" text-anchor="middle" >格低无用</text><text x="90" y="90" class="xf-s" font-size="12" text-anchor="middle" >有情</text><text x="90" y="190" class="xf-s" font-size="12" text-anchor="middle" >少情</text><text x="227" y="28" class="xf-s" font-size="12" text-anchor="middle" >有力</text><text x="427" y="28" class="xf-s" font-size="12" text-anchor="middle" >少力</text><text x="300" y="262" class="xf-s" font-size="11.5" text-anchor="middle" >有情：喜忌之神配合得宜（如合伤存官）；有力：喜用之神根深势足</text><text x="300" y="284" class="xf-s" font-size="11.5" text-anchor="middle" >一字可有千钧之力，半字可败全局之美</text>
+</svg>

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 380" width="640" height="380" role="img" aria-label="调候：四季寒暖燥湿不同，取用须兼顾气候">
+<title>调候：四季寒暖燥湿不同，取用须兼顾气候</title>
+<style>
+.xf-t{font-family:"Noto Serif SC","Songti SC",serif;fill:var(--ink,#2b2620)}
+.xf-s{font-family:"Noto Sans SC","PingFang SC",sans-serif;fill:var(--ink-3,#7a7064)}
+.xf-g{fill:var(--gold,#a07d3c)}
+.xf-ln{stroke:var(--ink-3,#9a8f80);fill:none;stroke-width:1.2}
+.xf-dash{stroke:var(--ink-3,#9a8f80);fill:none;stroke-width:1;stroke-dasharray:4 4}
+.xf-box{fill:none;stroke:var(--ink-4,#c9bfae);stroke-width:1}
+.xf-hl{fill:var(--gold,#a07d3c);fill-opacity:.12}
+</style>
+<defs><marker id="xf-14-tiaohou-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 1L9 5L0 9z" fill="var(--ink-3,#9a8f80)"/></marker></defs>
+<circle cx="320" cy="190" r="100" class="xf-box"/><text x="320" y="186" class="xf-g" font-size="18" text-anchor="middle" >调候</text><text x="320" y="208" class="xf-s" font-size="11" text-anchor="middle" >寒者暖之，燥者润之</text><circle cx="320" cy="90" r="22" fill="var(--wood,#5f7d55)" fill-opacity=".14" stroke="var(--wood,#5f7d55)" stroke-width="1.4"/><text x="320" y="96.1" font-size="17" text-anchor="middle" font-family="Noto Serif SC,serif" font-weight="600" style="fill:var(--wood,#5f7d55)">木</text><text x="320" y="38" class="xf-t" font-size="13" text-anchor="middle" >春 · 暖</text><text x="320" y="56" class="xf-s" font-size="10.5" text-anchor="middle" >春木逢火，木火通明</text><circle cx="420" cy="190" r="22" fill="var(--fire,#b5533f)" fill-opacity=".14" stroke="var(--fire,#b5533f)" stroke-width="1.4"/><text x="420" y="196.1" font-size="17" text-anchor="middle" font-family="Noto Serif SC,serif" font-weight="600" style="fill:var(--fire,#b5533f)">火</text><text x="456" y="184" class="xf-t" font-size="13" text-anchor="start" >夏 · 燥</text><text x="456" y="202" class="xf-s" font-size="10.5" text-anchor="start" >夏木喜水，火济水、水济火</text><circle cx="320" cy="290" r="22" fill="var(--metal,#8a8478)" fill-opacity=".14" stroke="var(--metal,#8a8478)" stroke-width="1.4"/><text x="320" y="296.1" font-size="17" text-anchor="middle" font-family="Noto Serif SC,serif" font-weight="600" style="fill:var(--metal,#8a8478)">金</text><text x="320" y="334" class="xf-t" font-size="13" text-anchor="middle" >秋 · 凉</text><text x="320" y="352" class="xf-s" font-size="10.5" text-anchor="middle" >秋金遇水，金水相涵</text><circle cx="220" cy="190" r="22" fill="var(--water,#4f6d85)" fill-opacity=".14" stroke="var(--water,#4f6d85)" stroke-width="1.4"/><text x="220" y="196.1" font-size="17" text-anchor="middle" font-family="Noto Serif SC,serif" font-weight="600" style="fill:var(--water,#4f6d85)">水</text><text x="184" y="184" class="xf-t" font-size="13" text-anchor="end" >冬 · 寒</text><text x="184" y="202" class="xf-s" font-size="10.5" text-anchor="end" >冬水冻木，须火暖局</text>
+</svg>

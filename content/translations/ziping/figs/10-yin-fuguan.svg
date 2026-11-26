@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 230" width="560" height="230" role="img" aria-label="寅中所藏：甲为本主如知府，丙、戊为长生如同知、通判">
+<title>寅中所藏：甲为本主如知府，丙、戊为长生如同知、通判</title>
+<style>
+.xf-t{font-family:"Noto Serif SC","Songti SC",serif;fill:var(--ink,#2b2620)}
+.xf-s{font-family:"Noto Sans SC","PingFang SC",sans-serif;fill:var(--ink-3,#7a7064)}
+.xf-g{fill:var(--gold,#a07d3c)}
+.xf-ln{stroke:var(--ink-3,#9a8f80);fill:none;stroke-width:1.2}
+.xf-dash{stroke:var(--ink-3,#9a8f80);fill:none;stroke-width:1;stroke-dasharray:4 4}
+.xf-box{fill:none;stroke:var(--ink-4,#c9bfae);stroke-width:1}
+.xf-hl{fill:var(--gold,#a07d3c);fill-opacity:.12}
+</style>
+<defs><marker id="xf-10-yin-fuguan-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 1L9 5L0 9z" fill="var(--ink-3,#9a8f80)"/></marker></defs>
+<rect x="40" y="30" width="480" height="150" rx="6" class="xf-box"/><text x="80" y="112" class="xf-t" font-size="40" text-anchor="middle" >寅</text><text x="80" y="140" class="xf-s" font-size="11" text-anchor="middle" >月令</text><text x="200" y="74" font-size="22" text-anchor="middle" font-family="Noto Serif SC,serif" style="fill:var(--wood,#5f7d55)">甲</text><text x="250" y="71" class="xf-s" font-size="11" text-anchor="middle" >本气</text><text x="380" y="71" class="xf-t" font-size="14" text-anchor="middle" >知府（本主）</text><text x="200" y="112" font-size="22" text-anchor="middle" font-family="Noto Serif SC,serif" style="fill:var(--fire,#b5533f)">丙</text><text x="250" y="109" class="xf-s" font-size="11" text-anchor="middle" >长生</text><text x="380" y="109" class="xf-t" font-size="14" text-anchor="middle" >同知</text><text x="200" y="150" font-size="22" text-anchor="middle" font-family="Noto Serif SC,serif" style="fill:var(--earth,#9a7b45)">戊</text><text x="250" y="147" class="xf-s" font-size="11" text-anchor="middle" >长生</text><text x="380" y="147" class="xf-t" font-size="14" text-anchor="middle" >通判</text><text x="280" y="212" class="xf-s" font-size="11.5" text-anchor="middle" >寅月为提纲而甲不透、丙透出：如知府不在，同知可以作主——用神由此而变</text>
+</svg>

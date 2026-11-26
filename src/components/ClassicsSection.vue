@@ -13,7 +13,7 @@
       <article v-for="b in books" :key="b.id" class="book">
         <div class="book-spine" aria-hidden="true"><span>{{ b.title }}</span></div>
         <div class="book-body">
-          <p class="book-level">{{ b.level }}</p>
+          <p class="book-level">{{ b.level }}<span v-if="b.translated" class="book-tr">白话对照 {{ b.translated }}/{{ b.chapters.length }} 章</span></p>
           <h3 class="book-title">{{ b.title }}</h3>
           <p class="book-author">{{ b.dynasty }} · {{ b.author }}</p>
           <p class="book-intro">{{ b.intro }}</p>

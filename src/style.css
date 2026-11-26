@@ -690,6 +690,24 @@ body {
 .rb-h { font-family: var(--serif); font-weight: 600; font-size: 1.15em; letter-spacing: 0.12em; color: var(--gold-2); margin: 2.2em 0 0.8em; display: flex; align-items: center; gap: 12px; }
 .rb-h::before { content: ''; width: 16px; height: 1px; background: var(--gold-dim); }
 .rb-p { font-family: var(--serif); font-size: 1em; line-height: 2.05; color: var(--ink); margin-bottom: 1.1em; text-align: justify; }
+/* 白话对照 */
+.tr-switch { display: flex; border: 1px solid var(--line); margin-right: 6px; }
+.tr-switch button { font: inherit; white-space: nowrap; font-size: 13px; color: var(--ink-3); background: none; border: 0; padding: 0 10px; cursor: pointer; letter-spacing: 0.1em; }
+.tr-switch button + button { border-left: 1px solid var(--line); }
+.tr-switch button.on { color: var(--gold); background: rgba(201, 169, 110, 0.08); }
+.tr-switch button:focus-visible { outline: 1px solid var(--gold); outline-offset: -1px; }
+.rb-pair { margin-bottom: 1.6em; }
+.rb-pair .rb-orig { color: var(--ink-2); border-left: 2px solid var(--gold-dim, rgba(201, 169, 110, 0.4)); padding-left: 1em; margin-bottom: 0.7em; }
+.rb-tr { font-family: var(--sans); font-size: 0.94em; line-height: 2; color: var(--ink); margin: 0 0 0.6em; text-align: justify; }
+.rb-pair.mode-pair .rb-tr { padding-left: calc(1em + 2px); }
+.rb-tr.rb-trnote { font-size: 0.82em; color: var(--ink-3); }
+.rb-fig { margin: 1.8em 0 2.2em; text-align: center; }
+.book-tr { margin-left: 10px; padding: 1px 8px; border: 1px solid var(--gold-dim); color: var(--gold); font-size: 0.85em; letter-spacing: 0.08em; }
+.rb-fig.hidden { display: none; }
+.rb-fig-svg svg { max-width: 100%; height: auto; }
+.rb-fig figcaption { font-size: 0.8em; color: var(--ink-3); line-height: 1.8; margin-top: 0.6em; }
+/* 手机：有阅读方式切换时隐藏顶栏书名（正文开头已有书名与章名），给切换按钮留出空间 */
+@media (max-width: 760px) { .tr-switch button { padding: 0 8px; font-size: 12px; } .reader.has-tr .reader-title { display: none; } .reader.has-tr .reader-tools { margin-left: auto; } }
 .rb-verse {
   font-family: var(--serif); font-size: 1.22em; line-height: 1.9; letter-spacing: 0.12em; color: var(--gold-2);
   margin: 2em 0 1em; padding: 0.4em 0 0.4em 1.1em; border-left: 2px solid var(--cinnabar);

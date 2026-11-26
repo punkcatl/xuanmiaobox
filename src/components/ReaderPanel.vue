@@ -1,7 +1,7 @@
 <template>
   <!-- appear：组件懒加载，首次打开时挂载即为打开状态，也要有进入动画 -->
   <transition name="reader" appear>
-    <div v-if="state.kind" class="reader" role="dialog" aria-modal="true" :aria-label="doc ? doc.title : '阅读'" :style="{ '--fs': fontSize + 'px' }">
+    <div v-if="state.kind" class="reader" :class="{ 'has-tr': chapter && chapter.translated && !loading }" role="dialog" aria-modal="true" :aria-label="doc ? doc.title : '阅读'" :style="{ '--fs': fontSize + 'px' }">
       <header class="reader-bar">
         <button type="button" class="reader-btn" :class="{ on: tocOpen }" @click="tocOpen = !tocOpen" aria-label="目录">
           <svg viewBox="0 0 20 20"><path d="M3 5h14M3 10h14M3 15h9"/></svg><span>目录</span>
@@ -14,6 +14,10 @@
           <button v-if="isBook && chapter && !loading" type="button" class="reader-btn sm" :class="{ on: markedHere }" @click="toggleBookmark" :aria-label="markedHere ? '移除书签' : '加书签'" :title="markedHere ? '移除本章书签' : '在当前位置加书签'">
             <svg viewBox="0 0 20 20"><path d="M6 3h8v14l-4-3-4 3z" :class="{ fill: markedHere }"/></svg>
           </button>
+          <!-- 有白话对照的章节：原文 / 对照 / 白话 -->
+          <div v-if="chapter && chapter.translated && !loading" class="tr-switch" role="radiogroup" aria-label="阅读方式">
+            <button v-for="m in TR_MODES" :key="m.id" type="button" role="radio" :aria-checked="trMode === m.id" :class="{ on: trMode === m.id }" @click="setTrMode(m.id)">{{ m.label }}</button>
+          </div>
           <button type="button" class="reader-btn sm" @click="setFont(-1)" aria-label="缩小字号">A−</button>
           <button type="button" class="reader-btn sm" @click="setFont(1)" aria-label="放大字号">A+</button>
           <button ref="closeBtn" type="button" class="reader-btn close" @click="closeReader" aria-label="关闭">×</button>
@@ -76,7 +80,17 @@
 
             <template v-for="(b, i) in chapter.blocks" :key="i">
               <h3 v-if="b.t === 'h'" :id="'rb-' + i" class="rb-h">{{ b.text }}</h3>
+              <!-- 白话对照：对照模式原文在上、白话在下；白话模式只显示白话；原文模式与普通段落相同 -->
+              <div v-else-if="b.t === 'p' && b.tr && trMode !== 'orig'" :id="'rb-' + i" class="rb-pair" :class="'mode-' + trMode">
+                <p v-if="trMode === 'pair'" class="rb-p rb-orig"><TermText :parts="marked[i]" /></p>
+                <p v-for="(t, j) in markedTr[i]" :key="j" class="rb-tr" :class="{ 'rb-trnote': t.note }"><TermText :parts="t.parts" /></p>
+              </div>
               <p v-else-if="b.t === 'p'" :id="'rb-' + i" class="rb-p"><TermText :parts="marked[i]" /></p>
+              <!-- 译者补图：原文模式下隐藏（仍保留锚点，书签与跳转不受影响） -->
+              <figure v-else-if="b.t === 'fig'" :id="'rb-' + i" class="rb-fig" :class="{ hidden: trMode === 'orig' }">
+                <div class="rb-fig-svg" v-html="b.svg"></div>
+                <figcaption>{{ b.caption }}</figcaption>
+              </figure>
               <blockquote v-else-if="b.t === 'verse'" :id="'rb-' + i" class="rb-verse">{{ b.text }}</blockquote>
               <div v-else-if="b.t === 'note'" :id="'rb-' + i" class="rb-note" :class="{ ren: b.who === '任氏曰' }">
                 <span class="rb-note-who">{{ b.who }}</span>
@@ -137,6 +151,8 @@ const bookLoaders = import.meta.glob(['../content/books/*.json', '!../content/bo
 const loadBook = id => bookLoaders[`../content/books/${id}.json`]();
 const LESSON_DOC = markRaw({ id: 'lessons', title: '八字入门', subtitle: '八节课，零基础读懂命盘', chapters: lessons });
 const TABS = [{ id: 'toc', label: '目录' }, { id: 'marks', label: '书签' }, { id: 'search', label: '检索' }];
+const TR_MODES = [{ id: 'orig', label: '原文' }, { id: 'pair', label: '对照' }, { id: 'tr', label: '白话' }];
+const TR_KEY = 'xm:tr-mode';
 const MAX_HITS = 80;
 const clampFont = v => (Number.isFinite(v) ? Math.min(22, Math.max(14, v)) : 17);
 
@@ -145,10 +161,11 @@ const blockText = b => b.text || (b.items ? b.items.join('') : '');
 export default {
   name: 'ReaderPanel',
   components: { TermText, LessonFigure },
-  setup: () => ({ state: readerState, closeReader, TABS, pad, PILLAR_SHORT }),
+  setup: () => ({ TR_MODES, state: readerState, closeReader, TABS, pad, PILLAR_SHORT }),
   data: () => ({
     doc: null, index: 0, loading: false, loadError: false, tocOpen: false, tab: 'toc',
-    queryInput: '', query: '', bookmarks: [], fontSize: clampFont(storage.get('xm:fs'))
+    queryInput: '', query: '', bookmarks: [], fontSize: clampFont(storage.get('xm:fs')),
+    trMode: TR_MODES.some(m => m.id === storage.get(TR_KEY)) ? storage.get(TR_KEY) : 'pair'
   }),
   computed: {
     isBook() { return this.state.kind === 'book'; },
@@ -170,14 +187,22 @@ export default {
         return null;
       });
     },
+    // 白话译文的术语切分（与原文分开计“首次出现”）；“（译注：…）”段落单独标记样式
+    markedTr() {
+      if (!this.chapter || !this.chapter.translated) return [];
+      const seen = new Set();
+      return this.chapter.blocks.map(b => (b.t === 'p' && b.tr
+        ? b.tr.split('\n').map(t => ({ note: t.startsWith('（译注'), parts: splitTerms(t, { once: true, seen }) }))
+        : null));
+    },
     markedHere() { return this.bookmarks.some(m => m.chapter === this.index); },
     searchResult() {
       const q = this.query;
       if (!q || !this.isBook) return { hits: [], total: 0 };
       const hits = [];
       let total = 0;
-      this.toc.forEach((c, ci) => c.blocks.forEach((b, bi) => {
-        const text = blockText(b);
+      // 原文与白话都检索
+      this.toc.forEach((c, ci) => c.blocks.forEach((b, bi) => [blockText(b), b.tr || ''].forEach(text => {
         let at = text.indexOf(q);
         while (at >= 0) {
           total++;
@@ -186,7 +211,7 @@ export default {
           }
           at = text.indexOf(q, at + q.length);
         }
-      }));
+      })));
       return { hits, total };
     },
     hits() { return this.searchResult.hits; },
@@ -274,6 +299,7 @@ export default {
     clearTimeout(this.searchTimer);
   },
   methods: {
+    setTrMode(m) { this.trMode = m; storage.set(TR_KEY, m); },
     reload() { location.reload(); },
     /** 打开时的章节：指定的序号或标题 → 保存的进度 → 第一章 */
     startChapter(book, chapter) {

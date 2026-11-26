@@ -7,7 +7,9 @@
 //   { t: 'verse', text }              原文（滴天髓诗句）
 //   { t: 'note', who, text }          注文（原注 / 任氏曰）
 //   { t: 'chart', pillars, dayun?, label? }  命例：四柱（年月日时）+ 大运
-import { readFileSync, writeFileSync, mkdirSync, realpathSync } from 'node:fs';
+//   { t: 'p', text, tr }              有白话译文的原文段落（tr 为译文，多段以换行分隔）
+//   { t: 'fig', svg, alt, caption }   译者补图（SVG 原文内嵌）
+import { readFileSync, writeFileSync, mkdirSync, realpathSync, readdirSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { JIA_ZI, TIAN_GAN, DI_ZHI } from '../src/engine/constants.js';
@@ -151,6 +153,67 @@ export function parseQiongtong(text) {
   return finalize(book);
 }
 
+// ---------------- 白话对照译稿 ----------------
+// 格式见 content/translations/README.md：引用块为原文，其后段落为白话，图片 + 斜体段落为补图
+const normText = s => s.replace(/[\s　]/g, '');
+
+/** 解析一章译稿为阅读器块 */
+export function parseTranslation(md, figDir, label = '') {
+  const blocks = [];
+  let cur = null;
+  let fig = null;
+  for (const raw of md.replace(/\r/g, '').split(/\n\s*\n/)) {
+    const c = raw.trim();
+    if (!c || c.startsWith('<!--') || /^#\s/.test(c)) continue;
+    if (c.startsWith('>')) {
+      cur = { t: 'p', text: c.split('\n').map(l => l.replace(/^>\s?/, '').trim()).join(''), tr: [] };
+      blocks.push(cur);
+      fig = null;
+      continue;
+    }
+    const img = c.match(/^!\[([^\]]*)\]\(([^)\s]+)\)$/);
+    if (img) {
+      const file = join(figDir, img[2]);
+      if (!existsSync(file)) throw new Error(`${label}：找不到补图 ${img[2]}`);
+      const svg = readFileSync(file, 'utf8').replace(/<\?xml[^>]*>\s*/, '').trim();
+      if (!svg.startsWith('<svg')) throw new Error(`${label}：${img[2]} 不是 SVG`);
+      fig = { t: 'fig', alt: img[1], svg, caption: '' };
+      blocks.push(fig);
+      continue;
+    }
+    if (fig && /^\*[\s\S]+\*$/.test(c)) { fig.caption = c.slice(1, -1).replace(/\n/g, ''); fig = null; continue; }
+    fig = null;
+    if (!cur) throw new Error(`${label}：第一段原文（引用块）之前出现了译文`);
+    cur.tr.push(c.replace(/\n/g, ''));
+  }
+  for (const b of blocks) {
+    if (b.t === 'p') { if (!b.tr.length) throw new Error(`${label}：原文“${b.text.slice(0, 12)}…”缺少译文`); b.tr = b.tr.join('\n'); }
+    if (b.t === 'fig' && !b.caption) throw new Error(`${label}：补图 ${b.alt} 缺少说明`);
+  }
+  return blocks;
+}
+
+/** 把 content/translations/<书>/NN-*.md 合并进对应章节；原文须与底本逐字一致（只允许拆段） */
+export function applyTranslations(book) {
+  const dir = join(root, 'content/translations', book.id);
+  if (!existsSync(dir)) return book;
+  for (const f of readdirSync(dir).filter(f => /^\d{2}-.+\.md$/.test(f)).sort()) {
+    const idx = Number(f.slice(0, 2));
+    const ch = book.chapters[idx];
+    if (!ch) throw new Error(`${book.id}/${f}：没有第 ${idx} 章`);
+    const blocks = parseTranslation(readFileSync(join(dir, f), 'utf8'), dir, `${book.id}/${f}`);
+    const orig = normText(ch.blocks.map(b => b.text || '').join(''));
+    const mine = normText(blocks.filter(b => b.t === 'p').map(b => b.text).join(''));
+    if (orig !== mine) {
+      const at = [...orig].findIndex((c, i) => c !== mine[i]);
+      throw new Error(`${book.id}/${f}：原文与底本不一致，自第 ${at} 字起：底本“${orig.slice(at, at + 12)}” / 译稿“${mine.slice(at, at + 12)}”`);
+    }
+    ch.blocks = blocks;
+    ch.translated = true;
+  }
+  return book;
+}
+
 // ---------------- 元信息 + 输出 ----------------
 export const META = {
   ziping: {
@@ -171,7 +234,7 @@ function main() {
   const out = join(root, 'src/content/books');
   mkdirSync(out, { recursive: true });
   const books = [
-    parseZiping(src('ziping.txt')),
+    applyTranslations(parseZiping(src('ziping.txt'))),
     parseDitiansui(src('ditiansui.txt')),
     parseQiongtong(src('qiongtong.txt'))
   ];
@@ -181,12 +244,13 @@ function main() {
     const full = { ...b, ...META[b.id] };
     writeFileSync(join(out, `${b.id}.json`), JSON.stringify(full));
     const n = t => b.chapters.reduce((s, c) => s + c.blocks.filter(x => x.t === t).length, 0);
-    console.log(`${b.id}: ${b.chapters.length} 章, p=${n('p')} verse=${n('verse')} note=${n('note')} chart=${n('chart')} h=${n('h')}`);
+    console.log(`${b.id}: ${b.chapters.length} 章, p=${n('p')} verse=${n('verse')} note=${n('note')} chart=${n('chart')} h=${n('h')} fig=${n('fig')} 白话=${b.chapters.filter(c => c.translated).length} 章`);
   }
   // 目录索引（首屏只加载这个）
   const index = books.map(b => ({
     id: b.id, ...META[b.id],
-    chapters: b.chapters.map(c => ({ id: c.id, title: c.title, part: c.part }))
+    translated: b.chapters.filter(c => c.translated).length, // 已有白话对照的章数
+    chapters: b.chapters.map(c => ({ id: c.id, title: c.title, part: c.part, translated: c.translated || undefined }))
   }));
   writeFileSync(join(out, 'index.json'), JSON.stringify(index));
 }
