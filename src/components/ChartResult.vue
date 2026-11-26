@@ -7,6 +7,7 @@
       <ul v-if="r.notes.length" class="notes">
         <li v-for="(n, i) in r.notes" :key="i">{{ n }}</li>
       </ul>
+      <RectifyPanel :r="r" :current-year="currentYear" />
       <div class="wuxing" data-tour="wuxing">
         <div class="wx-row" v-for="w in wuXingList" :key="w.name" :class="'wx-' + w.key">
           <span class="wx-name">{{ w.name }}</span>
@@ -58,10 +59,13 @@
     <!-- AI 深度解读（Claude） -->
     <AiReading :r="r" />
 
+    <!-- 问先生：多轮对话，开场先断过去 -->
+    <AiChat :r="r" />
+
     <!-- 运程 -->
     <div class="block">
       <h3 class="block-title"><span>运程</span><em>FORTUNE</em></h3>
-      <FortunePanel :values="r.values" :dayun="r.大运" :yun-start="r.yunStart" :current-year="currentYear" :birth-year="r.birthYear" />
+      <FortunePanel :values="r.values" :dayun="r.大运" :yun-start="r.yunStart" :current-year="currentYear" :birth-year="r.birthYear" :balance="r.balance" />
     </div>
   </div>
 </template>
@@ -70,6 +74,8 @@
 import ChartTable from './ChartTable.vue';
 import FortunePanel from './FortunePanel.vue';
 import AiReading from './AiReading.vue';
+import AiChat from './AiChat.vue';
+import RectifyPanel from './RectifyPanel.vue';
 import TermText from './TermText.vue';
 import { WX_ORDER, wxKey } from '../engine/constants.js';
 import { openReader, showToast } from '../composables/ui.js';
@@ -102,7 +108,7 @@ async function copyText(text) {
 
 export default {
   name: 'ChartResult',
-  components: { ChartTable, FortunePanel, TermText, AiReading },
+  components: { ChartTable, FortunePanel, TermText, AiReading, AiChat, RectifyPanel },
   props: {
     r: { type: Object, required: true },
     currentYear: { type: Number, required: true }

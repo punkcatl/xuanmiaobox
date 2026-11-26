@@ -27,7 +27,7 @@
       <div class="liunian">
         <button v-for="y in liunian" :key="y.year" type="button" class="liunian-item" :class="{ now: y.isCurrent, on: y.year === year }" @click="year = y.year; userPicked = true">
           <span class="liunian-head"><span class="liunian-year num">{{ y.year }}</span><span class="liunian-gz">{{ y.ganZhi }}</span></span>
-          <span class="liunian-god">{{ y.shiShen }}<i v-if="y.relations.length" class="dot" title="与命局有冲合"></i></span>
+          <span class="liunian-god">{{ y.shiShen }}<em v-if="y.tone" class="tone-tag" :class="'tone-' + y.tone">{{ TONE_LABEL[y.tone] }}</em><i v-if="y.relations.length" class="dot" title="与命局有冲合"></i></span>
         </button>
       </div>
 
@@ -62,9 +62,10 @@ export default {
     dayun: { type: Array, required: true },
     yunStart: { type: String, default: '' },
     currentYear: { type: Number, required: true },
-    birthYear: { type: Number, default: null } // 出生所属干支年，用于“起运前”的流年
+    birthYear: { type: Number, default: null }, // 出生所属干支年，用于“起运前”的流年
+    balance: { type: Object, default: null } // 命局喜忌：流年按喜忌论吉凶
   },
-  data: () => ({ dIdx: 0, year: null, userPicked: false }),
+  data: () => ({ dIdx: 0, year: null, userPicked: false, TONE_LABEL: { good: '吉', mixed: '平', bad: '凶' } }),
   computed: {
     // 北京时间“YYYY-MM-DD HH:MM”，与交运时刻比较判断当前大运（直接读时钟，只有本组件每分钟更新）
     now() { return nowMinuteKey.value; },
@@ -96,7 +97,7 @@ export default {
     liunian() {
       if (!this.curRange) return [];
       const { from, to } = this.curRange;
-      return computeLiuNian(this.values, from, to - from + 1, this.currentYear);
+      return computeLiuNian(this.values, from, to - from + 1, this.currentYear, this.balance);
     },
     curYear() { return this.liunian.find(y => y.year === this.year) || null; },
     liuyue() { return this.curYear ? computeLiuYue(this.values, this.curYear.year) : []; }

@@ -115,9 +115,31 @@ describe('喜用', () => {
   it('身强喜官杀、食伤、财星，忌印比；身弱相反', () => {
     const strong = computeChart(base).balance; // 乙木身强
     expect(strong.status).toBe('身强');
-    expect(strong.useGod).toEqual(['金', '火', '土']);
+    // 乙木生子月、印（水）旺：财星土破印，冬月调候火为急 → 火 > 土 > 金
+    expect(strong.useGod).toEqual(['火', '土', '金']);
+    expect(strong.primaryGod).toBe('火');
     expect(strong.avoidGod).toEqual(['水', '木']);
     expect(analyzeBalance({ 木: 10, 水: 10, 火: 100, 土: 100, 金: 100 }, ['甲子', '丙午', '乙未', '戊午']).useGod).toEqual(['水', '木']);
+  });
+  it('喜用分主次：夏月燥土身强，比劫重而印亦有力 → 水 > 金 > 木', () => {
+    const b = computeChart({ year: 1989, month: 7, day: 28, hour: 8, minute: 0, gender: 'female', province: '福建省', city: '三明市', district: '将乐县', useTrueSolarTime: true }).balance;
+    expect(b.status).toBe('身强');
+    expect(b.useGod).toEqual(['水', '金', '木']);
+    expect(b.steps.join()).toContain('调候以水为急');
+    // 身弱、财星为患：比劫为先（印怕财坏）
+    expect(analyzeBalance({ 木: 10, 水: 10, 火: 100, 土: 200, 金: 30 }, ['甲子', '丙辰', '乙卯', '戊寅']).useGod[0]).toBe('木');
+  });
+  it('流年、大运按喜忌论吉凶（不再只按十神套话）', () => {
+    const c = computeChart({ year: 1989, month: 7, day: 28, hour: 8, minute: 0, gender: 'female', province: '福建省', city: '三明市', district: '将乐县', useTrueSolarTime: true });
+    const ln = computeLiuNian(c.values, 2026, 6, 2026, c.balance);
+    const by = y => ln.find(x => x.year === y);
+    expect(by(2026).tone).toBe('bad');            // 丙午：火为忌
+    expect(by(2026).analysis).toContain('印星为忌');
+    expect(by(2028).tone).toBe('mixed');          // 戊申：土忌金喜
+    expect(by(2031).tone).toBe('good');           // 辛亥：金水皆喜
+    expect(c.大运.find(d => d.ganZhi === '乙亥').tone).toBe('good');
+    // 不传喜忌时保持旧文案（兼容）
+    expect(computeLiuNian(c.values, 2026, 1, 2026)[0].tone).toBeNull();
   });
   it('校正说明带年份（跨年时不误导）', () => {
     expect(computeChart({ ...base, year: 1900, month: 1, day: 1, hour: 0, minute: 0 }).notes.join()).toContain('1899年12月31日');

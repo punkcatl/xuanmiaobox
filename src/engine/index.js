@@ -1,7 +1,7 @@
 // 引擎对外入口
 import { countWuXing, describeCorrections, BaziError } from './bazi.js';
 import { chartRelations } from './relations.js';
-import { computeDaYun, computeLiuNian, computeLiuYue, baziYearFromPillar } from './fortune.js';
+import { computeDaYun, computeLiuNian, computeLiuYue, baziYearFromPillar, ganZhiTone } from './fortune.js';
 import { determineGeju, tiaoHou, buildReading } from './analysis.js';
 import { computeDaily } from './daily.js';
 import { computeCompat } from './compat.js';
@@ -20,7 +20,7 @@ export function computeChart(person) {
   const geju = determineGeju(values);
   // 出生所属干支年：年柱按北京时间与立春比较，立春前出生属上一年
   const birthYear = baziYearFromPillar(person.year, values[0]);
-  const dayun = computeDaYun(eightChar, person.gender, values, birthYear);
+  const dayun = computeDaYun(eightChar, person.gender, values, birthYear, balance);
   return {
     input: { ...person },
     bazi: pillars,
@@ -40,4 +40,4 @@ export function computeChart(person) {
   };
 }
 
-export { computeCore, computeCompat, computeDaily, computeLiuNian, computeLiuYue, baziYearFromPillar, BaziError };
+export { computeCore, computeCompat, computeDaily, computeLiuNian, computeLiuYue, baziYearFromPillar, ganZhiTone, BaziError };

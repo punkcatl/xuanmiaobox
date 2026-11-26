@@ -16,8 +16,9 @@ const versionFile = () => ({
 
 export default defineConfig({
   // 开发时把 AI 解读接口转发到本地服务（node server/ai-server.mjs）
-  server: { proxy: { '/api': 'http://localhost:8787' } },
-  preview: { proxy: { '/api': 'http://localhost:8787' } },
+  server: { proxy: { '/api': 'http://127.0.0.1:8787' } },
+  // 允许经 Cloudflare 临时隧道（*.trycloudflare.com）访问预览服务；只对外开放 preview（构建产物），不开放 dev
+  preview: { proxy: { '/api': 'http://127.0.0.1:8787' }, allowedHosts: ['.trycloudflare.com'] },
   build: {
     // 字体文件一律不内联：小字体分片若被转成 base64 塞进 fonts-*.css（还含现代浏览器用不到的 woff），会失去按 unicode-range 按需加载的意义
     assetsInlineLimit: file => (/\.woff2?$/.test(file) ? false : undefined),

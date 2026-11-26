@@ -19,6 +19,32 @@ const LIUNIAN_TEXT = {
   官杀: '官杀年，事业有变动压力，亦有晋升契机。'
 };
 
+// 按喜忌分吉凶的流年文案（天干十神定事类，天干地支五行定喜忌）
+const LIUNIAN_TONE = {
+  比劫: { good: '比劫为喜，得同辈朋友助力，利合作、合伙与拓展人脉。', bad: '比劫为忌，同辈竞争加剧，防破财、借贷纠纷与合伙不利。' },
+  食伤: { good: '食伤为喜，才华得以发挥，利创作、表达、技术与开拓新业务。', bad: '食伤为忌，易言多有失、思虑过度，忌冲动辞职与口舌是非。' },
+  印星: { good: '印星为喜，利学业考试、进修晋升，长辈贵人相助。', bad: '印星为忌，易思虑重、行动迟缓、依赖他人，宜防懈怠；考证进修仍可一试。' },
+  财星: { good: '财星为喜，求财机遇增多，收入有望提升。', bad: '财星为忌，财来财去，宜量入为出，忌投机与过度投资。' },
+  官杀: { good: '官杀为喜，事业有晋升契机，利竞聘、考公与承担重任。', bad: '官杀为忌，工作压力与是非增多，防小人与官非，注意身体。' }
+};
+const DAYUN_TONE = { good: '此运干支多为喜用，整体顺遂，宜积极进取。', bad: '此运干支多为忌神，阻力较多，宜守成蓄力、稳中求进。', mixed: '此运喜忌参半，起伏互见，宜扬长避短。' };
+
+/**
+ * 外来干支对命局的喜忌：天干五行、地支本气各计 ±1（喜 +1、忌 −1）
+ * @returns {{ tone: 'good'|'bad'|'mixed', score: number, note: string }}
+ */
+export function ganZhiTone(gz, balance) {
+  if (!balance) return null;
+  const { useGod = [], avoidGod = [] } = balance;
+  const judge = wx => (useGod.includes(wx) ? 1 : avoidGod.includes(wx) ? -1 : 0);
+  const gw = GAN_WX[gz[0]];
+  const zw = ZHI_WX[gz[1]];
+  const score = judge(gw) + judge(zw);
+  const tag = (wx, v) => `${wx}${v > 0 ? '为喜' : v < 0 ? '为忌' : '平'}`;
+  const note = gw === zw ? `干支皆${tag(gw, judge(gw))}` : `天干${tag(gw, judge(gw))}、地支${tag(zw, judge(zw))}`;
+  return { tone: score > 0 ? 'good' : score < 0 ? 'bad' : 'mixed', score, note };
+}
+
 /** lunar-javascript Solar → 北京时间字段 */
 const fieldsOf = t => ({ year: t.getYear(), month: t.getMonth(), day: t.getDay(), hour: t.getHour(), minute: t.getMinute() });
 
@@ -47,7 +73,7 @@ function relationSummary(gz, values) {
  * @param {string[]} values 四柱
  * @param {number} birthYear 出生所属干支年
  */
-export function computeDaYun(eightChar, gender, values, birthYear) {
+export function computeDaYun(eightChar, gender, values, birthYear, balance) {
   // sect 2：按出生时刻到节气的分钟级时差推算起运
   const yun = eightChar.getYun(gender === 'male' ? 1 : 0, 2);
   const dayGan = values[2][0];
@@ -62,8 +88,10 @@ export function computeDaYun(eightChar, gender, values, birthYear) {
   const list = yun.getDaYun(11).slice(1, 11).map((d, i) => {
     const gz = d.getGanZhi();
     const god = tenGod(dayGan, gz[0]);
+    const t = ganZhiTone(gz, balance);
     return {
       ganZhi: gz,
+      tone: t ? t.tone : null,
       // 虚岁 = 交运时刻所属干支年 − 出生所属干支年 + 1（都以立春换年，与“起运前 1 岁”及流年范围一致）；
       // 历法库的 getStartAge 按公历年，出生或交运在元旦至立春之间时会差一岁
       startAge: years[i] - birthYear + 1,
@@ -73,7 +101,7 @@ export function computeDaYun(eightChar, gender, values, birthYear) {
       fromYear: years[i],
       toYear: years[i + 1],
       shiShen: god,
-      analysis: (DAYUN_TEXT[GOD_CLASS[god]] || '') + zhiNote(gz[1], dayWx),
+      analysis: (DAYUN_TEXT[GOD_CLASS[god]] || '') + zhiNote(gz[1], dayWx) + (t ? `${t.note}，${DAYUN_TONE[t.tone]}` : ''),
       relations: relationSummary(gz, values)
     };
   });
@@ -81,8 +109,11 @@ export function computeDaYun(eightChar, gender, values, birthYear) {
   return { list, start };
 }
 
-/** 流年：指定年份范围；currentYear 为命理当前年（见 baziYearFromPillar） */
-export function computeLiuNian(values, fromYear, count, currentYear) {
+/**
+ * 流年：指定年份范围；currentYear 为命理当前年（见 baziYearFromPillar）
+ * balance 为命局旺衰喜忌（analyzeBalance 的结果），传入时按喜忌给出吉凶文案
+ */
+export function computeLiuNian(values, fromYear, count, currentYear, balance) {
   const dayGan = values[2][0];
   return Array.from({ length: count }, (_, k) => {
     const year = fromYear + k;
@@ -90,9 +121,15 @@ export function computeLiuNian(values, fromYear, count, currentYear) {
     const god = tenGod(dayGan, gz[0]);
     const offset = year - currentYear;
     const label = offset === 0 ? '今年' : offset === 1 ? '明年' : offset === -1 ? '去年' : offset > 0 ? `${offset}年后` : `${-offset}年前`;
+    const t = ganZhiTone(gz, balance);
+    const cls = GOD_CLASS[god];
+    const body = !t ? LIUNIAN_TEXT[cls] || ''
+      : t.tone === 'mixed' ? `${t.note}，喜忌参半。${LIUNIAN_TEXT[cls] || ''}`
+        : `${t.note}。${LIUNIAN_TONE[cls][t.tone]}`;
     return {
       year, ganZhi: gz, shiShen: god, isCurrent: offset === 0,
-      analysis: `${label}，${LIUNIAN_TEXT[GOD_CLASS[god]] || ''}`,
+      tone: t ? t.tone : null,
+      analysis: `${label}，${body}`,
       relations: relationSummary(gz, values)
     };
   });

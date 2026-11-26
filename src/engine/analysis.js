@@ -55,8 +55,12 @@ export function analyzeBalance(weighted, values) {
     }
   }
 
-  // 解盘依据：得令、得地、得势
   const monthZhi = values[1][1];
+  const base = useGod; // 扶抑原始顺序（身强：官杀、食伤、财；身弱：印、比劫），用于下方文案
+  const ranked = rankUseGod(useGod, { status, dayWx, weighted, monthZhi });
+  useGod = ranked.list;
+
+  // 解盘依据：得令、得地、得势
   const monthWx = ZHI_WX[monthZhi];
   const deLing = allies.includes(monthWx);
   const roots = values.flatMap((v, i) =>
@@ -72,15 +76,56 @@ export function analyzeBalance(weighted, values) {
         ? `中和略偏强，宜稍加克泄耗：取克泄耗日元的五行中最弱的${useGod.join('、')}为喜用，忌生扶日元中较旺的${avoidGod.join('、')}。`
         : `中和略偏弱，宜稍加生扶：取生扶日元的${useGod.join('、')}为喜用，忌克泄耗日元中最旺的${avoidGod.join('、')}。`)
       : status === '身强'
-        ? `身强宜克、泄、耗：喜克身的${useGod[0]}（官杀）、泄身的${useGod[1]}（食伤）、耗身的${useGod[2]}（财星），忌生扶日元的${avoidGod.join('、')}。`
-        : `身弱宜生扶：喜生身的${useGod[0]}（印星）、助身的${useGod[1]}（比劫），忌克泄耗身的${avoidGod.join('、')}。`
+        ? `身强宜克、泄、耗：喜克身的${base[0]}（官杀）、泄身的${base[1]}（食伤）、耗身的${base[2]}（财星），忌生扶日元的${avoidGod.join('、')}。`
+        : `身弱宜生扶：喜生身的${base[0]}（印星）、助身的${base[1]}（比劫），忌克泄耗身的${avoidGod.join('、')}。`
   ];
   let special = '';
   if (ratio < 0.15) special = '生扶力量极弱，可能构成从格（弃命从势），需由专业命理师判断，上述喜忌仅供参考。';
   if (ratio > 0.85) special = '生扶力量极旺，可能构成专旺格，需由专业命理师判断，上述喜忌仅供参考。';
+  if (ranked.note) steps.push(ranked.note);
   if (special) steps.push(special);
 
-  return { status, useGod, avoidGod, ratio, steps };
+  return { status, useGod, avoidGod, ratio, steps, primaryGod: useGod[0] };
+}
+
+/**
+ * 喜用神排主次（扶抑为体、调候为先）：
+ * - 身强：比劫重而印轻 → 官杀制比劫为先；印重（印 ≥ 比劫）→ 财星破印为先；
+ *   比劫重且印亦有力（印占生扶力量 ≥ 30%）→ 食伤泄秀、财星为先，官杀会生印助身，退居其后
+ * - 身弱：官杀或食伤为患 → 印星为先（化杀、制食伤）；财星为患 → 比劫为先（印怕财坏）
+ * - 调候：夏月（巳午未）水、冬月（亥子丑）火若在喜用之列，提到首位
+ */
+const SUMMER = ['巳', '午', '未'];
+const WINTER = ['亥', '子', '丑'];
+export function rankUseGod(useGod, { status, dayWx, weighted, monthZhi }) {
+  const yin = ALLY[dayWx].find(w => w !== dayWx);
+  const shi = SHENG[dayWx];
+  const cai = KE[dayWx];
+  const guan = WX_ORDER.find(w => KE[w] === dayWx);
+  const w = x => weighted[x] || 0;
+  let order = useGod.slice();
+  let why = '';
+  if (status === '身强') {
+    const yinShare = w(yin) / ((w(yin) + w(dayWx)) || 1);
+    if (w(yin) >= w(dayWx)) { order = [cai, shi, guan]; why = `印星${yin}为生扶主力，以财星${cai}破印为先`; }
+    else if (yinShare >= 0.3) { order = [shi, cai, guan]; why = `比劫${dayWx}重而印星${yin}亦有力，官杀${guan}会生印助身，故以食伤${shi}泄秀、财星${cai}为先`; }
+    else { order = [guan, shi, cai]; why = `比劫${dayWx}为生扶主力，以官杀${guan}制比劫为先`; }
+  } else if (status === '身弱') {
+    const foes = { [guan]: '官杀', [shi]: '食伤', [cai]: '财星' };
+    const worst = [guan, shi, cai].sort((a, b) => w(b) - w(a))[0];
+    if (worst === cai) { order = [dayWx, yin]; why = `克泄耗中财星${cai}最重，印星怕财坏，以比劫${dayWx}帮身为先`; }
+    else { order = [yin, dayWx]; why = `克泄耗中${foes[worst]}${worst}最重，以印星${yin}${worst === guan ? '化杀' : '制食伤'}生身为先`; }
+  }
+  order = order.filter(x => useGod.includes(x));
+  let tiao = '';
+  const need = SUMMER.includes(monthZhi) ? '水' : WINTER.includes(monthZhi) ? '火' : null;
+  if (need && order.includes(need) && order[0] !== need) {
+    order = [need, ...order.filter(x => x !== need)];
+    tiao = `生于${SUMMER.includes(monthZhi) ? '夏月，命局燥热' : '冬月，命局寒湿'}，调候以${need}为急，提为第一用神`;
+  }
+  const parts = [why, tiao].filter(Boolean).join('；');
+  if (order.length < 2 || !parts) return { list: order, note: '' };
+  return { list: order, note: `喜用主次：${order.join(' > ')}（${parts}）。` };
 }
 
 // —— 格局 ——
@@ -208,7 +253,7 @@ export function buildReading(values, weighted, balance, geju) {
     { k: '命主属性', v: `您是${name}（${desc}），${traits}` },
     { k: '格局', v: `${geju.name}。${geju.basis}` },
     { k: '命局旺衰', v: `${status}之命。${wxDesc.length ? wxDesc.join('，') + '。' : '五行分布较为均衡。'}` },
-    { k: '五行喜忌', v: `命局喜用神为${useStr}，忌${avoidGod.join('、')}。建议多接触属${useStr}的事物，可起到调和命局的作用。` },
+    { k: '五行喜忌', v: `命局喜用神为${useStr}${useGod.length > 1 ? `（以${useGod[0]}为第一用神）` : ''}，忌${avoidGod.join('、')}。建议多接触属${useStr}的事物，可起到调和命局的作用。` },
     { k: '性格特点', v: personality },
     { k: '事业方向', v: `适合从事${career}等行业，这些方向有助于发挥您的命局优势。` },
     { k: '养生提示', v: `平时宜多关注${health}方面的保养，保持良好的生活习惯和作息规律。此为传统命理之说，身体状况请以医生诊断为准。` },

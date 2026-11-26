@@ -1,5 +1,6 @@
 // 生成可粘贴到任意 AI 助手的命盘解读提示词（不调用任何外部服务）
 import { formatDateTime } from './date.js';
+import { TOPICS, topicFacts, chatFacts } from '../engine/topics.js';
 export function buildAiPrompt(r) {
   const i = r.input;
   const lines = [
@@ -17,4 +18,25 @@ export function buildAiPrompt(r) {
     `${r.yunStart}；大运：${r.大运.map(d => `${d.ganZhi}(${d.startAge}岁)`).join(' ')}`
   ];
   return lines.join('\n');
+}
+
+/**
+ * 服务端分主题解读用的提示词：基础命盘 + 引擎算好的主题要素
+ * @param r computeChart 结果  @param {string} topic TOPICS 的键  @param {number} currentYear 命理当前年
+ */
+export function buildTopicPrompt(r, topic, currentYear) {
+  const t = TOPICS[topic] || TOPICS.overall;
+  return [
+    buildAiPrompt(r),
+    `喜用主次：${r.balance.useGod.join(' > ')}（${r.balance.steps.find(s => s.startsWith('喜用主次')) || '按扶抑取用'}）`,
+    '',
+    `【本次问事：${t.label}】请围绕以下重点解读：${t.focus}。`,
+    '以下要素由排盘程序算出，请以此为据，不要自行推算流年干支或吉凶：',
+    ...topicFacts(r, topic, currentYear)
+  ].join('\n');
+}
+
+/** 多轮问事的命盘资料：基础命盘 + 全部主题要点 + 过去的验证年份 */
+export function buildChatContext(r, currentYear) {
+  return ['【命盘资料】', buildAiPrompt(r).split('\n').slice(2).join('\n'), '', ...chatFacts(r, currentYear)].join('\n');
 }
