@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { childEnv } from '../server/claude-local.mjs';
 import { parseInput, systemFor, clientIp, codeMatches, takeDaily, resetDaily, parseChat, flattenChat, systemChat, CHAT_MAX_TURNS } from '../server/ai-server.mjs';
 import { buildChatContext } from '../src/utils/aiPrompt.js';
-import { pastEvents } from '../src/engine/topics.js';
+import { pastEvents, compatFacts, isRelation } from '../src/engine/topics.js';
 import { candidates, rectifyQuestions, scoreCandidates, shiftInput } from '../src/engine/rectify.js';
 import { computeChart } from '../src/engine/index.js';
 import { buildTopicPrompt } from '../src/utils/aiPrompt.js';
@@ -149,5 +149,32 @@ describe('定时辰', () => {
     const answers = Object.fromEntries(qs.map(q => [q.id, q.yes.includes(2) && !q.yes.includes(1) ? 'yes' : 'no']));
     expect(scoreCandidates(cs, qs, answers).best).toBe(2);
     expect(scoreCandidates(cs, qs, {}).best).toBeNull();
+  });
+});
+
+describe('问先生：合盘', () => {
+  const me = computeChart({ year: 1989, month: 7, day: 28, hour: 8, minute: 0, gender: 'female', province: '福建省', city: '三明市', district: '将乐县', useTrueSolarTime: true });
+  const him = computeChart({ year: 1987, month: 3, day: 15, hour: 10, minute: 30, gender: 'male', province: '福建省', city: '福州市', district: '鼓楼区', useTrueSolarTime: true });
+  it('关系只接受固定枚举', () => {
+    expect(isRelation('lover')).toBe(true);
+    expect(isRelation('toString')).toBe(false);
+    expect(isRelation('前任')).toBe(false);
+  });
+  it('合盘要素：双方概况、分数与因素、十年对照', () => {
+    const f = compatFacts(me, him, 'lover', 2026);
+    expect(f[0]).toContain('合盘对象：恋人');
+    expect(f.some(l => l.startsWith('甲方：女'))).toBe(true);
+    expect(f.some(l => l.startsWith('乙方：男'))).toBe(true);
+    expect(f.some(l => /^合盘分数：\d+/.test(l))).toBe(true);
+    expect(f.filter(l => /^20\d\d /.test(l))).toHaveLength(10);
+  });
+  it('有合盘对象时：资料附上对方命盘，系统提示词改为合盘并允许谈两人关系', () => {
+    const ctx = buildChatContext(me, 2026, { chart: him, relation: 'spouse' });
+    expect(ctx).toContain('【合盘对象的命盘】');
+    expect(ctx).toContain('合盘对象：夫妻');
+    expect(systemChat('spouse')).toContain('本次是合盘');
+    expect(systemChat()).not.toContain('本次是合盘');
+    expect(systemChat()).toContain('加入合盘对象');   // 无对象时引导去加入，而不是拒绝
+    expect(systemChat()).not.toContain('替他人算命');
   });
 });

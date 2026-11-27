@@ -87,12 +87,13 @@ export const store = reactive({
     party2: partyDefaults({ year: 1995, month: 5, day: 20, hour: 8, minute: 30 })
   },
   result: null,
-  resultSource: null, // 'form' 自己提交 / 'url' 分享链接 / 'archive' 档案
+  resultSource: null, // 'form' 自己提交 / 'url' 分享链接 / 'archive' 档案 / 'compat' 从合盘区转去问先生（不弹导览）
   resultSilent: false, // 当前命盘是否为静默恢复（见 calculateChart）
   unsavedIds: [], // 未能写入存储（仅本次访问有效）的档案条目 ID，供界面显示
   compat: null,
   chartError: '',
   compatError: '',
+  chatPartner: null, // “问先生”的合盘对象 { name, input（含性别）, relation }
   archive: loadArchive(readArchive()),
   meId: null
 });
@@ -107,7 +108,7 @@ syncMe();
 const errorMessage = e => (e instanceof BaziError ? e.message : '排盘出错，请稍后重试');
 
 /**
- * @param {'form'|'url'|'archive'} source 命盘来源
+ * @param {'form'|'url'|'archive'|'compat'} source 命盘来源
  * @param {{ silent?: boolean }} opts silent：静默恢复（如发布新版本后自动刷新），页面不滚动、不弹导览
  */
 export function calculateChart(input = store.form, source = 'form', { silent = false } = {}) {

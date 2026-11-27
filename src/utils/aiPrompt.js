@@ -1,6 +1,6 @@
 // 生成可粘贴到任意 AI 助手的命盘解读提示词（不调用任何外部服务）
 import { formatDateTime } from './date.js';
-import { TOPICS, topicFacts, chatFacts } from '../engine/topics.js';
+import { TOPICS, topicFacts, chatFacts, compatFacts } from '../engine/topics.js';
 export function buildAiPrompt(r) {
   const i = r.input;
   const lines = [
@@ -36,7 +36,16 @@ export function buildTopicPrompt(r, topic, currentYear) {
   ].join('\n');
 }
 
-/** 多轮问事的命盘资料：基础命盘 + 全部主题要点 + 过去的验证年份 */
-export function buildChatContext(r, currentYear) {
-  return ['【命盘资料】', buildAiPrompt(r).split('\n').slice(2).join('\n'), '', ...chatFacts(r, currentYear)].join('\n');
+const chartLines = r => buildAiPrompt(r).split('\n').slice(2).join('\n'); // 去掉开头的通用解读要求
+
+/**
+ * 多轮问事的命盘资料：基础命盘 + 全部主题要点 + 过去的验证年份；有合盘对象时附上对方命盘与合盘要素
+ * @param {{ chart: object, relation: string } | null} partner
+ */
+export function buildChatContext(r, currentYear, partner = null) {
+  const lines = ['【命盘资料】（求测者本人）', chartLines(r), '', ...chatFacts(r, currentYear)];
+  if (partner) {
+    lines.push('', '【合盘对象的命盘】', chartLines(partner.chart), '', ...compatFacts(r, partner.chart, partner.relation, currentYear));
+  }
+  return lines.join('\n');
 }

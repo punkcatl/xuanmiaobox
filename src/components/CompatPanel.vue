@@ -68,6 +68,24 @@
               <dd><TermText :text="item.v" /></dd>
             </template>
           </dl>
+          <!-- 交给“问先生”：甲方作为本人排盘，乙方作为合盘对象 -->
+          <div class="compat-ask no-print">
+            <button v-if="!asking" type="button" class="btn btn-ghost sm" @click="asking = true">请先生讲讲这段缘分</button>
+            <form v-else class="chat-pick" @submit.prevent="askMaster">
+              <label class="field"><span>甲方性别</span>
+                <select v-model="ask.g1"><option value="male">男</option><option value="female">女</option></select>
+              </label>
+              <label class="field"><span>乙方性别</span>
+                <select v-model="ask.g2"><option value="male">男</option><option value="female">女</option></select>
+              </label>
+              <label class="field"><span>两人关系</span>
+                <select v-model="ask.relation"><option v-for="(r, k) in RELATIONS" :key="k" :value="k">{{ r.label }}</option></select>
+              </label>
+              <button type="submit" class="btn btn-ghost sm">去问先生</button>
+              <button type="button" class="link-btn" @click="asking = false">取消</button>
+              <p class="ai-note">将以甲方为本人排盘，乙方作为合盘对象，转到“问先生”与先生对话（性别用于排大运）。</p>
+            </form>
+          </div>
         </div>
       </div>
     </transition>
@@ -78,7 +96,8 @@
 // 八字合盘：表单 + 可解释的结果
 import TermText from './TermText.vue';
 import BirthFields from './BirthFields.vue';
-import { store, calculateCompat } from '../composables/store.js';
+import { store, calculateCompat, calculateChart } from '../composables/store.js';
+import { RELATIONS } from '../engine/topics.js';
 import { wxKey } from '../engine/constants.js';
 import { scrollToId } from '../composables/ui.js';
 
@@ -87,7 +106,8 @@ const PARTIES = Object.freeze({ party1: '甲方', party2: '乙方' });
 export default {
   name: 'CompatPanel',
   components: { TermText, BirthFields },
-  setup: () => ({ store, PARTIES, calculateCompat }),
+  setup: () => ({ store, PARTIES, calculateCompat, RELATIONS }),
+  data: () => ({ asking: false, ask: { g1: 'female', g2: 'male', relation: 'lover' } }),
   computed: {
     compatNotes() {
       const r = store.compat;
@@ -101,7 +121,18 @@ export default {
     }
   },
   methods: {
-    wxKey
+    wxKey,
+    askMaster() {
+      const tst = { useTrueSolarTime: store.form2.useTrueSolarTime };
+      Object.assign(store.form, { ...store.form2.party1, ...tst, gender: this.ask.g1 });
+      if (!calculateChart(store.form, 'compat')) return; // 不弹“看懂我的盘”导览，直接去对话
+      // 先排本人（会清空对话与同人对象），再设合盘对象
+      this.$nextTick(() => {
+        store.chatPartner = { name: '乙方', input: { ...store.form2.party2, ...tst, gender: this.ask.g2 }, relation: this.ask.relation };
+        this.asking = false;
+        this.$nextTick(() => scrollToId('ai-chat'));
+      });
+    }
   }
 };
 </script>

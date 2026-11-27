@@ -2,6 +2,7 @@
 import { GAN_WX, ZHI_WX, CANG_GAN, WX_ORDER, SHENG, KE, PILLAR_SHORT, tenGod, wxTotal } from './constants.js';
 import { computeLiuNian, computeLiuYue, ganZhiTone } from './fortune.js';
 import { keyRelations } from './relations.js';
+import { compatFactors } from './compat.js';
 
 export const TOPICS = {
   overall: { label: '综合', focus: '命局概览（格局与旺衰）、性格特点、事业财运、感情婚姻、健康提示、当前大运与近年流年、建议' },
@@ -205,4 +206,47 @@ export function chatFacts(chart, currentYear) {
   const past = pastEvents(chart, currentYear);
   lines.push('—— 过去可供验证的年份（用于“先断过去”）——', ...(past.length ? past.map(p => `${p.year} ${p.ganZhi}：${p.signs.join('；')}`) : ['（成年后暂无明显的验证年份）']));
   return lines;
+}
+
+// —— 合盘 ——
+export const RELATIONS = {
+  lover: { label: '恋人', focus: '性格是否合拍、感情发展的走向、适合结婚的年份、相处中的摩擦点与化解办法' },
+  spouse: { label: '夫妻', focus: '婚姻中的互补与摩擦、家庭分工、双方运势如何互相影响、需要共同留意的年份' },
+  business: { label: '合伙人', focus: '能力与性格的互补、分工建议（谁主外谁主内）、合作中的风险点、适合共同发力或需要谨慎的年份' },
+  friend: { label: '朋友', focus: '相处是否投缘、彼此能带来的助力、容易产生分歧的地方' },
+  family: { label: '家人', focus: '性格差异与沟通方式、彼此的助力与牵挂、相处建议' }
+};
+export const isRelation = r => typeof r === 'string' && Object.prototype.hasOwnProperty.call(RELATIONS, r);
+
+/**
+ * 合盘要素：分数与加减因素、双方概况、未来十年两人的同步与冲突年份
+ * @param a 求测者 computeChart 结果  @param b 合盘对象 computeChart 结果
+ */
+export function compatFacts(a, b, relation, currentYear) {
+  const TONE = { good: '吉', bad: '凶', mixed: '平' };
+  const { score, factors } = compatFactors(a, b);
+  const brief = (c, who) => {
+    const cur = currentDayun(c, currentYear);
+    return `${who}：${c.input.gender === 'female' ? '女' : '男'}，四柱 ${c.values.join(' ')}，日主${c.values[2][0]}${GAN_WX[c.values[2][0]]}，${c.balance.status}，喜用 ${c.balance.useGod.join(' > ')}、忌 ${c.balance.avoidGod.join('、')}；当前大运 ${cur ? `${cur.ganZhi}（${cur.fromYear}–${cur.toYear}，${TONE[cur.tone] || ''}）` : '未起运或已走完'}`;
+  };
+  const lnA = computeLiuNian(a.values, currentYear, 10, currentYear, a.balance);
+  const lnB = computeLiuNian(b.values, currentYear, 10, currentYear, b.balance);
+  const years = lnA.map((ya, i) => {
+    const yb = lnB[i];
+    const notes = [`甲方${TONE[ya.tone]}、乙方${TONE[yb.tone]}`];
+    const touch = (c, who) => keyRelations(ya.ganZhi, c.values, { zhiOnly: true }).filter(r => r.with === 2).map(r => `${who}夫妻宫${r.text}`);
+    notes.push(...touch(a, '甲方'), ...touch(b, '乙方'));
+    return `${ya.year} ${ya.ganZhi}：${notes.join('；')}`;
+  });
+  return [
+    `【合盘对象：${RELATIONS[relation].label}】（下称甲方为求测者本人，乙方为合盘对象）`,
+    brief(a, '甲方'),
+    brief(b, '乙方'),
+    `合盘分数：${score}（以 60 为基础按下列因素加减，范围 30–98）`,
+    ...(factors.length ? factors.map(f => `${f.delta > 0 ? '+' : '−'}${Math.abs(f.delta)} ${f.label}：${f.text}`) : ['两人命局之间没有明显的合冲与互补']),
+    `乙方原局刑冲合害：${b.relations.map(r => r.text).join('、') || '无明显关系'}`,
+    '未来十年两人流年对照（吉凶 + 流年与各自夫妻宫的冲合）：',
+    ...years,
+    `本次合盘关注：${RELATIONS[relation].focus}`
+  ];
 }

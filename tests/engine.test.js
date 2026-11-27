@@ -427,3 +427,18 @@ describe('大运流年范围', () => {
     }
   });
 });
+
+describe('地区数据', () => {
+  it('每个城市都有经度（真太阳时校正可用），区县经度只覆盖已有区县', async () => {
+    const { regions, cityLongitudes, districtLongitudes } = await import('../src/data/regions.js');
+    for (const [prov, cities] of Object.entries(regions)) {
+      for (const city of Object.keys(cities)) expect(typeof (cityLongitudes[prov] || {})[city], `${prov}${city}`).toBe('number');
+    }
+    for (const [key, ds] of Object.entries(districtLongitudes)) {
+      const [prov, city] = key.split('|');
+      for (const d of Object.keys(ds)) expect(regions[prov][city], key).toContain(d);
+    }
+    expect(Object.keys(regions['安徽省'])).toContain('淮南市');
+    expect(Object.keys(regions['安徽省'])).toHaveLength(16);
+  });
+});
